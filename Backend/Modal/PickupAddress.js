@@ -62,6 +62,10 @@ const pickupAddressSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
+    is_default: {
+      type: Boolean,
+      default: false,
+    },
   },
   {
     timestamps: true,
