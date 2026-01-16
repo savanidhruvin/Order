@@ -64,7 +64,7 @@ exports.getPickupAddressById = async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) {
-            return res.status(400).json({ success: false, message: "pickup_location is required" });
+            return res.status(400).json({ success: false, message: "id is required" });
         }
         const localItem = await PickupAddress.findById(id).lean();
         if (!localItem) {
@@ -159,3 +159,5 @@ exports.setDefaultPickupAddress = async (req, res) => {
         return getErrorResponse(res, error?.response?.data?.status_code || 500, message,);
     }
 }
+
+
