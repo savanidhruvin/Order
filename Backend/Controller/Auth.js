@@ -20,10 +20,9 @@ exports.Authentication = async (req, res) => {
             }
         );
 
-        return getSuccessResponse(res,response?.data?.token);
+        return getSuccessResponse(res, response?.data?.token);
     } catch (error) {
         const message = error.response?.data?.message || error.message;
-        console.log(error.response);
-        return getErrorResponse(res, 500, message, error.response?.data);
+        return getErrorResponse(res, error?.response?.data?.status_code || 500, message,);
     }
 };
