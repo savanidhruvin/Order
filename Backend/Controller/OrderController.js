@@ -333,7 +333,7 @@ exports.cancleOrder = async (req, res) => {
 
 exports.getAllOrder = async (req, res) => {
     try {
-        const localList = await Order.find().lean();
+        const localList = await Order.find().lean().populate('pickup_location');
         if (!localList || !localList.length) {
             return getErrorResponse(res, 404, 'order not found');
         }
@@ -350,7 +350,7 @@ exports.getOrderById = async (req, res) => {
         if (!id) {
             return res.status(400).json({ success: false, message: "id is required" });
         }
-        const localItem = await Order.findById(id).lean();
+        const localItem = await Order.findById(id).lean().populate('pickup_location');;
         if (!localItem) {
             return getErrorResponse(res, 404, 'order not found');
         }

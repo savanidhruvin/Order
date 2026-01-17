@@ -65,10 +65,10 @@ const AddOrder = () => {
 
   return (
     <>
-  <div className="container ms:px-10 px-5 mx-auto">
-    <div className="flex items-center gap-2 text-gray-900">
-      <button className="text-3xl font-bold"><HiMiniChevronLeft /></button>
+  <div className="container ms:px-10 px-5 mx-auto mt-5">
+    <div className="flex items-center justify-between gap-2 text-gray-900">
       <h1 className="text-2xl font-bold">Add Order</h1>
+      <button className='px-2 py-1 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>Back</button>
     </div>
     {/* <div className="mt-6 border-b border-gray-200">
       <div className="flex gap-6 text-sm font-medium">
@@ -79,7 +79,7 @@ const AddOrder = () => {
       </div>
     </div> */}
     <div>
-      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6 mt-5">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-xs sm:text-sm">Pickup Address</h3>
           <div className="flex items-center gap-2 sm:gap-4">

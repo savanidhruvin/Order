@@ -8,6 +8,7 @@ import { Fragment } from "react";
 import { FaTrash } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
 import { GetAllOrder } from '../store/slices/orderSlice';
+import { useNavigate } from 'react-router-dom';
 
 
 const Order = () => {
@@ -17,6 +18,7 @@ const Order = () => {
   const dropdownRef = useRef(null);
   const dispatch = useDispatch()
   const orderMap = useSelector(state => state?.orders?.orders.data)
+  const navigate = useNavigate()
 
   useEffect(()=>{
      dispatch(GetAllOrder())
@@ -47,7 +49,7 @@ const Order = () => {
        <div className='container ms:px-10 px-5 mx-auto'>
            <div className='flex justify-between my-2'>
              <h1 className='text-3xl font-bold'>Orders</h1>
-             <button className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button>
+             <button onClick={()=> navigate("/addorder")} className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button>
            </div>
            <div className='mt-5'>
            <div className="relative overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
@@ -94,11 +96,11 @@ const Order = () => {
                            </td>
                    
                            <td className="px-6 py-4 font-semibold text-green-600">
-                             ₹2,999
+                             ₹{ele?.subTotal}
                            </td>
                    
                            <td className="px-6 py-4">
-                             Ahmedabad, Gujarat
+                             {ele?.pickup_location?.city}, {ele?.pickup_location?.state}
                            </td>
                    
                            <td className="px-6 py-4">
