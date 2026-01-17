@@ -5,9 +5,13 @@ export const OrderSchema = Yup.object({
     .required("Mobile number is required")
     .matches(/^[6-9]\d{9}$/, "Enter a valid 10-digit Indian mobile number"),
 
-  fullName: Yup.string()
+  firstName: Yup.string()
     .required("Full name is required")
-    .min(3, "Name must be at least 3 characters"),
+    .min(3, "First Name must be at least 3 characters"),
+
+  lastName: Yup.string()
+  .required("Full name is required")
+  .min(3, "Last Name must be at least 3 characters"),
 
   address: Yup.string()
     .required("Address is required")

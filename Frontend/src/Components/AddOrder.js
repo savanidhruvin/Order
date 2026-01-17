@@ -19,6 +19,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { GetPickupAddresses } from '../store/slices/pickupaddressSlice';
 import { useFormik } from 'formik';
 import { OrderSchema } from '../Schema';
+import { CreateOrder } from '../store/slices/orderSlice';
 
 const AddOrder = () => {
   const dispatch = useDispatch();
@@ -116,7 +117,8 @@ const AddOrder = () => {
 
   const initialValues = {
     mobile: "",
-    fullName: "",
+    firstName: "",
+    lastName: "",
     address: "",
     landmark: "",
     pincode: "",
@@ -144,7 +146,7 @@ const AddOrder = () => {
       validationSchema:OrderSchema,
       onSubmit : (values , action) => {
            console.log("OKOKOKO" , values);
-           
+           dispatch(CreateOrder(values))
       }
   })
   
@@ -217,7 +219,6 @@ const AddOrder = () => {
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="text-xs text-gray-600">Mobile Number</label>
             <div className="flex mt-1">
-              <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md text-xs sm:text-sm bg-gray-100">+91</span>
               <input name="mobile" value={AddFormik.values.mobile} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm outline-none focus:ring-1 focus:ring-purple-500" placeholder="Enter mobile number"/>
             </div>
               {AddFormik.touched.mobile && AddFormik.errors.mobile && (<p className="text-red-500 text-xs mt-1">  {AddFormik.errors.mobile}</p>)}
@@ -225,8 +226,14 @@ const AddOrder = () => {
 
           <div>
             <label className="text-xs text-gray-600">Full Name</label>  
-            <input name="fullName" value={AddFormik.values.fullName} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Full Name"/>
-            {AddFormik.touched.fullName && AddFormik.errors.fullName && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.fullName} </p>)}
+            <input name="firstName" value={AddFormik.values.firstName} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Full Name"/>
+            {AddFormik.touched.firstName && AddFormik.errors.firstName && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.firstName} </p>)}
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-600">Last Name</label>  
+            <input name="lastName" value={AddFormik.values.lastName} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Full Name"/>
+            {AddFormik.touched.lastName && AddFormik.errors.lastName && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.lastName} </p>)}
           </div>
 
           <div className="sm:col-span-2 lg:col-span-1">

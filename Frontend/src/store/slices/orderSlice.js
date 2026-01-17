@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
 import axios from 'axios';
 const BaseUrl = "http://localhost:5000/api"
+const token = localStorage.getItem("Token")
 
 export const GetAllOrder = createAsyncThunk(
   "admin/getapplication",
@@ -8,9 +9,9 @@ export const GetAllOrder = createAsyncThunk(
       try {
 
           const response = await axios.get(`${BaseUrl}/getAllOrder`, {
-              // headers: {
-              //     Authorization: `Bearer ${token}`
-              // }
+              headers: {
+                  Authorization: `Bearer ${token}`
+              }
           })
 
           return response.data
@@ -24,13 +25,33 @@ export const GetAllOrder = createAsyncThunk(
 
 export const CreateOrder = createAsyncThunk(
   "admin/CreateOrder",
-  async (_, { rejectWithValue }) => {
+  async (values, { rejectWithValue }) => {
       try {
-
-          const response = await axios.post(`${BaseUrl}/createOrder`, {
-              // headers: {
-              //     Authorization: `Bearer ${token}`
-              // }
+ 
+         const items = values.products.map((item) => ({
+            name: item.productName,
+            qty: Number(item.quantity),
+            price: Number(item.unitPrice),
+            discount: Number(item.discount) || 0,
+            tax: Number(item.taxRate) || 0,
+         }));
+          const response = await axios.post(`${BaseUrl}/createOrder`, { 
+              headers: {
+                  Authorization: `Bearer ${token}`
+              } 
+          } ,{
+            items,
+            shippingInfo:{
+              firstName:"",
+              lastName:"",
+              email:"",
+              phone:values,
+              address:values,
+              city: values,
+              state: values,
+              country: values,
+              pincode: values
+            }
           })
 
           return response.data
