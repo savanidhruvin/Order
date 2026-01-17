@@ -11,17 +11,64 @@ import { FaLocationDot } from "react-icons/fa6";
 import { IoCall } from "react-icons/io5";
 import { IoIosArrowDown } from "react-icons/io";
 import { RiDeleteBin6Line } from "react-icons/ri";
+import { HiMiniChevronLeft } from "react-icons/hi2";
+import { FaBagShopping } from "react-icons/fa6";
+import { HiOutlineLightBulb } from "react-icons/hi";
 
 
 const AddOrder = () => {
   const [openModal, setOpenModal] = useState(false);
+  const [openEditModal, setOpenEditModal] = useState(false);
+  const [products, setProducts] = useState([
+    {
+      id: Date.now(),
+      productName: '',
+      unitPrice: '',
+      quantity: 1,
+      discount: '',
+      taxRate: ''
+    }
+  ]);
+
+  const addProduct = () => {
+    setProducts([...products, {
+      id: Date.now(),
+      productName: '',
+      unitPrice: '',
+      quantity: 1,
+      discount: '',
+      taxRate: ''
+    }]);
+  };
+
+  const deleteProduct = (id) => {
+    if (products.length > 1) {
+      setProducts(products.filter(product => product.id !== id));
+    }
+  };
+
+  const updateProduct = (id, field, value) => {
+    setProducts(products.map(product => 
+      product.id === id ? { ...product, [field]: value } : product
+    ));
+  };
+
+  const updateQuantity = (id, change) => {
+    setProducts(products.map(product => {
+      if (product.id === id) {
+        const newQuantity = Math.max(1, product.quantity + change);
+        return { ...product, quantity: newQuantity };
+      }
+      return product;
+    }));
+  };
 
   return (
     <>
-  <div className="px-3 sm:px-4 md:px-6 pt-4 pb-6">
+  <div className="container ms:px-10 px-5 mx-auto">
     <div className="flex items-center gap-2 text-gray-900">
-      <button className="text-xl font-medium"><FaLessThan /></button>
-      <h1 className="text-base sm:text-lg font-semibold">Add Order</h1>
+      <button className="text-3xl font-bold"><HiMiniChevronLeft /></button>
+      <h1 className="text-2xl font-bold">Add Order</h1>
     </div>
     {/* <div className="mt-6 border-b border-gray-200">
       <div className="flex gap-6 text-sm font-medium">
@@ -31,16 +78,12 @@ const AddOrder = () => {
         <button className="pb-3 text-gray-400 hover:text-gray-600">International Order</button>
       </div>
     </div> */}
-    <div className="mx-auto max-w-7xl">
-      <div className="inline-flex rounded-md border border-gray-300 overflow-hidden mb-4 sm:mb-6 w-full sm:w-auto">
-        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs sm:text-sm font-medium text-purple-600 bg-purple-50">Single Order</button>
-        <button className="flex-1 sm:flex-none px-3 sm:px-4 py-1.5 text-xs sm:text-sm text-gray-600 hover:bg-gray-100">Bulk Order</button>
-      </div>
+    <div>
       <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-xs sm:text-sm">Pickup Address</h3>
           <div className="flex items-center gap-2 sm:gap-4">
-            <button className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm sm:text-base"><MdOutlineEdit /></button>
+            <button onClick={() => setOpenEditModal(true)} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm sm:text-base"><MdOutlineEdit /></button>
             <button onClick={() => setOpenModal(true)} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm sm:text-base"><LuPlus /></button>
           </div>
         </div>
@@ -96,59 +139,114 @@ const AddOrder = () => {
         </div>
 
         <div className="mt-4 sm:mt-6 bg-gray-50 p-3 sm:p-4 rounded-md flex items-center gap-2">
-          <input type="checkbox" checked className="accent-purple-600 w-4 h-4 sm:w-5 sm:h-5" />
+          <input type="checkbox" className="accent-purple-600 w-4 h-4 sm:w-5 sm:h-5" />
           <span className="text-xs sm:text-sm font-medium">Billing Details are same as Delivery Details</span>
         </div>
       </div>
     </div>
 
-    <div className="mx-auto max-w-7xl">
+    <div>
       <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
         <h3 className="text-xs sm:text-sm font-semibold mb-3 sm:mb-4">Product Details</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 items-end">
-          <div className="sm:col-span-2 lg:col-span-2">
-            <label className="text-xs text-gray-600">Product Name</label>
-            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter or search your product name"/>
-          </div>
+        
+        {products.map((product, index) => (
+          <div key={product.id} className={index > 0 ? "mt-4 sm:mt-6" : ""}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 items-end">
+              <div className="sm:col-span-2 lg:col-span-2">
+                <label className="text-xs text-gray-600">Product Name</label>
+                <input 
+                  className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" 
+                  placeholder="Enter or search your product name"
+                  value={product.productName}
+                  onChange={(e) => updateProduct(product.id, 'productName', e.target.value)}
+                />
+              </div>
 
-          <div>
-            <label className="text-xs text-gray-600">Unit Price</label>
-            <div className="flex mt-1">
-              <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">₹</span>
-              <input className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm" value="0.00" />
-            </div>
-          </div>
+              <div>
+                <label className="text-xs text-gray-600">Unit Price</label>
+                <div className="flex mt-1">
+                  <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">₹</span>
+                  <input 
+                    className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                    type="number"
+                    value={product.unitPrice}
+                    onChange={(e) => updateProduct(product.id, 'unitPrice', e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <div>
-            <label className="text-xs text-gray-600">Quantity</label>
-            <div className="mt-1 flex border rounded-md overflow-hidden">
-              <button className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"><FiMinus /></button>
-              <input className="w-full text-center text-xs sm:text-sm" value="1" />
-              <button className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"><LuPlus /></button>
-            </div>
-          </div>
+              <div>
+                <label className="text-xs text-gray-600">Quantity</label>
+                <div className="mt-1 flex border rounded-md overflow-hidden h-[38px]">
+                  <button 
+                    type="button"
+                    className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"
+                    onClick={() => updateQuantity(product.id, -1)}
+                  >
+                    <FiMinus />
+                  </button>
+                  <input 
+                    className="w-full text-center text-xs sm:text-sm"
+                    type="number"
+                    value={product.quantity}
+                    onChange={(e) => updateProduct(product.id, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                  />
+                  <button 
+                    type="button"
+                    className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"
+                    onClick={() => updateQuantity(product.id, 1)}
+                  >
+                    <LuPlus />
+                  </button>
+                </div>
+              </div>
 
-          <div>
-            <label className="text-xs text-gray-600">Product Discount <span className="text-gray-400">(Optional)</span></label>
-            <div className="flex mt-1">
-              <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">₹</span>
-              <input className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm" value="0.00" />
-            </div>
-          </div>
+              <div>
+                <label className="text-xs text-gray-600">Product Discount <span className="text-gray-400">(Optional)</span></label>
+                <div className="flex mt-1">
+                  <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">₹</span>
+                  <input 
+                    className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                    type="number"
+                    value={product.discount}
+                    onChange={(e) => updateProduct(product.id, 'discount', e.target.value)}
+                  />
+                </div>
+              </div>
 
-          <div className="sm:col-span-2 lg:col-span-1 flex items-end gap-2">
-            <div className="flex-1">
-              <label className="text-xs text-gray-600">Tax Rate <span className="text-gray-400">(Optional)</span></label>
-              <div className="flex mt-1">
-                <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">%</span>
-                <input className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm" value="0.00" />
+              <div className="sm:col-span-2 lg:col-span-1 flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-600">Tax Rate <span className="text-gray-400">(Optional)</span></label>
+                  <div className="flex mt-1">
+                    <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">%</span>
+                    <input 
+                      className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                      type="number"
+                      value={product.taxRate}
+                      onChange={(e) => updateProduct(product.id, 'taxRate', e.target.value)}
+                    />
+                  </div>
+                </div>
+                <button 
+                  type="button"
+                  className="text-red-500 text-base sm:text-lg mb-1 p-1 sm:p-2"
+                  onClick={() => deleteProduct(product.id)}
+                  disabled={products.length === 1}
+                >
+                  <RiDeleteBin6Line />
+                </button>
               </div>
             </div>
-            <button className="text-red-500 text-base sm:text-lg mb-1 p-1 sm:p-2"><RiDeleteBin6Line /></button>
           </div>
-        </div>
+        ))}
 
-        <button className="mt-4 text-xs sm:text-sm text-purple-600 border border-purple-300 px-3 sm:px-4 py-1.5 rounded-md w-full sm:w-auto">+ Add Another Product</button>
+        <button 
+          type="button"
+          className="mt-4 text-xs sm:text-sm text-purple-600 border border-purple-300 px-3 sm:px-4 py-1.5 rounded-md w-full sm:w-auto"
+          onClick={addProduct}
+        >
+          + Add Another Product
+        </button>
 
         <div className="mt-4 sm:mt-6 bg-gray-50 px-3 sm:px-4 py-2 sm:py-3 rounded-md text-xs sm:text-sm font-medium flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 sm:gap-0">Add Other Charges & Discount
           <span className="text-gray-400">(Optional)</span>
@@ -187,14 +285,14 @@ const AddOrder = () => {
       </div>
     </div>
 
-    <div className="mx-auto max-w-7xl">
+    <div>
       <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 space-y-4 sm:space-y-6">
         <div className="flex flex-col sm:flex-row sm:justify-between sm:items-start gap-3 sm:gap-0">
           <div>
             <h3 className="text-xs sm:text-sm font-semibold">Package Details</h3>
             <p className="text-xs text-gray-500 mt-1">Provide the details of the final package that includes all the ordered items packed together.</p>
           </div>
-          <div className="flex items-center gap-2 bg-sky-50 border border-sky-200 text-sky-700 text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-md shrink-0">💡 Tip: Add correct values to avoid weight discrepancy</div>
+          <div className="flex items-center gap-2 bg-sky-50 border border-sky-200 text-sky-700 text-xs px-2 sm:px-3 py-1.5 sm:py-2 rounded-md shrink-0"><HiOutlineLightBulb className='text-lg'/>Tip: Add correct values to avoid weight discrepancy</div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
@@ -202,7 +300,7 @@ const AddOrder = () => {
             <label className="text-xs font-medium">Dead Weight</label>
             <p className="text-xs text-gray-500 mb-1">Physical weight of a package</p>
             <div className="flex">
-              <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" value="0.00" />
+              <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" />
               <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">kg</span>
             </div>
             <p className="text-[10px] sm:text-[11px] text-gray-400 mt-1">Note: Minimum chargeable wt is 0.5 kg</p>
@@ -229,19 +327,19 @@ const AddOrder = () => {
             <p className="text-[10px] sm:text-[11px] text-gray-400 mt-1">Note: Value should be greater than 0.50 cm</p>
           </div>
 
-          <div className="lg:col-span-3">
+          <div className="lg:col-span-3 sm:mt-3">
             <label className="text-xs font-medium flex items-center gap-1">Volumetric Weight
               <span className="text-gray-400">?</span>
             </label>
-            <div className="flex mt-1 sm:mt-5">
-              <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" value="0" />
+            <div className="flex mt-1 sm:mt-4">
+              <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" />
               <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">kg</span>
             </div>
           </div>
         </div>
 
         <div className="flex gap-2 sm:gap-3 bg-green-50 border border-green-200 rounded-md p-3 sm:p-4">
-          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0 text-sm sm:text-base">⚖</div>
+          <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600 shrink-0 text-sm sm:text-base"><FaBagShopping /></div>
           <div>
             <p className="text-xs sm:text-sm font-semibold">Applicable Weight: <span className="text-green-700">0 kg</span></p>
             <p className="text-xs text-gray-600">Applicable weight is the higher of the dead weight or volumetric weight, used by the courier for freight charges.</p>
@@ -251,158 +349,271 @@ const AddOrder = () => {
           <span className="break-words"><strong>Pack like a Pro</strong> - Guidelines for Packaging and Measuring</span>
           <button className="text-purple-600 font-medium flex items-center gap-1 shrink-0 self-start sm:self-auto">See Guidelines <FaAngleDown /></button>
         </div>
+        <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
+          <button className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-gray-500 rounded-md text-xs sm:text-sm font-medium">Ship Now</button>
+          <button className="px-4 sm:px-6 py-2 sm:py-3 bg-white border border-purple-600 text-purple-600 rounded-md text-xs sm:text-sm font-medium">Add Order</button>
+        </div>
       </div>
     </div>
   </div>
 
-      {/* Modal for Add New Pickup Address */}
-      <Transition show={openModal} as={Fragment}>
-        <Dialog as="div" className="relative z-10" onClose={setOpenModal}>
-          
-          <Transition.Child
-            as={Fragment}
-            enter="ease-in-out duration-500"
-            enterFrom="opacity-0"
-            enterTo="opacity-100"
-            leave="ease-in-out duration-500"
-            leaveFrom="opacity-100"
-            leaveTo="opacity-0"
-          >
-            <div className="fixed inset-0 bg-gray-900/50" />
-          </Transition.Child>
-      
-          <div className="fixed inset-0 overflow-hidden">
-            <div className="absolute inset-0 overflow-hidden">
-              <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
-      
-                <Transition.Child
-                  as={Fragment}
-                  enter="transform transition ease-in-out duration-500"
-                  enterFrom="translate-x-full"
-                  enterTo="translate-x-0"
-                  leave="transform transition ease-in-out duration-500"
-                  leaveFrom="translate-x-0"
-                  leaveTo="translate-x-full"
-                >
-                  <DialogPanel className="pointer-events-auto relative w-full max-w-8xl bg-white shadow-xl flex flex-col">
-                    <div className="relative flex h-full flex-col overflow-y-auto">
-      
-                      {/* Header */}
-                      <div className="flex justify-between items-center px-6 py-4 border-b">
-                        <DialogTitle className="text-lg font-semibold">Add New Pickup Address</DialogTitle>
-                        <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
-                          <IoCloseSharp className="text-2xl" />
-                        </button>
+  {/* Modal for Add New Pickup Address */}
+  <Transition show={openModal} as={Fragment}>
+    <Dialog as="div" className="relative z-10" onClose={setOpenModal}>
+      <Transition.Child as={Fragment} enter="ease-in-out duration-500" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in-out duration-500" leaveFrom="opacity-100" leaveTo="opacity-0">
+        <div className="fixed inset-0 bg-gray-900/50" />
+      </Transition.Child>
+      <div className="fixed inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
+            <Transition.Child as={Fragment} enter="transform transition ease-in-out duration-500" enterFrom="translate-x-full" enterTo="translate-x-0" leave="transform transition ease-in-out duration-500" leaveFrom="translate-x-0" leaveTo="translate-x-full">
+              <DialogPanel className="pointer-events-auto relative w-full max-w-8xl bg-white shadow-xl flex flex-col">
+                <div className="relative flex h-full flex-col overflow-y-auto">
+                  {/* Header */}
+                  <div className="flex justify-between items-center px-6 py-4 border-b">
+                    <DialogTitle className="text-lg font-semibold">Add New Pickup Address</DialogTitle>
+                    <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
+                      <IoCloseSharp className="text-2xl" />
+                    </button>
+                  </div>
+                  {/* Steps */}
+                  <div className="px-6 py-6">
+                    <div className="bg-gray-50 rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
+                      <div>
+                        <div className="mx-auto w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mb-3"><FaLocationDot /></div>
+                        <p className="text-sm text-gray-600">Provide your full address and exact location for accurate pickups</p>
                       </div>
-
-                      {/* Steps */}
-                      <div className="px-6 py-6">
-                        <div className="bg-gray-50 rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
-                          <div>
-                            <div className="mx-auto w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
-                            <FaLocationDot />
-                            </div>
-                            <p className="text-sm text-gray-600">
-                              Provide your full address and exact location for accurate pickups
-                            </p>
-                          </div>
-
-                          <div className="hidden md:flex items-center justify-center text-gray-300">
-                            ─────────▶
-                          </div>
-
-                          <div>
-                            <div className="mx-auto w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
-                            <IoCall />
-                            </div>
-                            <p className="text-sm text-gray-600">
-                              Share contact details of the person handling shipment handover
-                            </p>
-                          </div>
-
-                          <div className="hidden md:flex items-center justify-center text-gray-300">
-                            ─────────▶
-                          </div>
-
-                          <div>
-                            <div className="mx-auto w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mb-3">
-                              📅
-                            </div>
-                            <p className="text-sm text-gray-600">
-                              Specify your operational hours to ensure pickups are scheduled on time
-                            </p>
-                          </div>
-                        </div>
+                      <div className="hidden md:flex items-center justify-center text-gray-300">─────────▶</div>
+                      <div>
+                        <div className="mx-auto w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mb-3"><IoCall /></div>
+                        <p className="text-sm text-gray-600">Share contact details of the person handling shipment handover</p>
                       </div>
-
-                      {/* Address Details */}
-                      <div className="px-6 space-y-6">
-                        <h3 className="font-semibold text-sm">Address Details</h3>
-
-                        {/* Address Tag */}
-                        <div>
-                          <p className="text-sm font-medium mb-2">Tag this address as</p>
-                          <div className="flex flex-wrap gap-2">
-                            <button className="px-4 py-1.5 text-sm border rounded-full border-indigo-500 text-indigo-600 bg-indigo-50">
-                              Home
-                            </button>
-                            <button className="px-4 py-1.5 text-sm border rounded-full">Work</button>
-                            <button className="px-4 py-1.5 text-sm border rounded-full">Warehouse</button>
-                            <button className="px-4 py-1.5 text-sm border rounded-full">Other</button>
-                          </div>
-                        </div>
-
-                        {/* Location Choice */}
-                        <div>
-                          <p className="text-sm font-medium mb-2">Are you at this address right now?</p>
-                          <div className="flex flex-col sm:flex-row gap-4 text-sm">
-                            <label className="flex items-center gap-2">
-                              <input type="radio" name="location" />
-                              Yes, use my present location
-                            </label>
-                            <label className="flex items-center gap-2">
-                              <input type="radio" name="location" defaultChecked />
-                              No, I will add the location manually
-                            </label>
-                          </div>
-                        </div>
-
-                        {/* Search Address */}
-                        <div className="bg-gray-50 rounded-lg p-4">
-                          <label className="text-sm font-medium">Search for your pickup address location/building/area/landmark</label>
-                          <p className="text-xs text-gray-500 mb-2">Please add minimum 5 characters</p>
-                          <div className="relative">
-                            <input type="text" placeholder="Search Location" className="w-full border rounded-md pl-10 pr-3 py-2 text-sm"/>
-                            <span className="absolute left-3 top-2.5 text-gray-400"><IoSearchOutline /></span>
-                          </div>
-                        </div>
-
-                        {/* Accordions */}
-                        <div className="border-t pt-4 flex justify-between items-center text-sm text-gray-600 cursor-pointer">
-                          <span>Contact Details</span>
-                          <span><IoIosArrowDown /></span>
-                        </div>
-
-                        <div className="border-t pt-4 flex justify-between items-center text-sm text-gray-600 cursor-pointer">
-                          <span>Operational timings</span>
-                          <span><IoIosArrowDown /></span>
-                        </div>
-                        <button className="text-indigo-600 text-sm font-medium flex items-center gap-1">+ Add RTO Address and Supplier <IoIosArrowDown /></button>
-                      </div>
-
-                      {/* Footer */}
-                      <div className="px-6 py-4 border-t flex justify-end gap-4 mt-6">
-                        <button onClick={() => setOpenModal(false)} className="px-5 py-2 border border-indigo-500 text-indigo-600 rounded-md text-sm">Cancel</button>
-                        <button className="px-6 py-2 bg-indigo-600 text-white rounded-md text-sm">Verify and Save Address</button>
+                      <div className="hidden md:flex items-center justify-center text-gray-300">─────────▶</div>
+                      <div>
+                        <div className="mx-auto w-14 h-14 bg-indigo-100 rounded-full flex items-center justify-center mb-3">📅</div>
+                        <p className="text-sm text-gray-600">Specify your operational hours to ensure pickups are scheduled on time</p>
                       </div>
                     </div>
-                  </DialogPanel>
-                </Transition.Child>
-              </div>
-            </div>
+                  </div>
+                  {/* Address Details */}
+                  <div className="px-6 space-y-6">
+                    <h3 className="font-semibold text-sm">Address Details</h3>
+                    {/* Address Tag */}
+                    <div>
+                      <p className="text-sm font-medium mb-2">Tag this address as</p>
+                      <div className="flex flex-wrap gap-2">
+                        <button className="px-4 py-1.5 text-sm border rounded-full border-indigo-500 text-indigo-600 bg-indigo-50">Home</button>
+                        <button className="px-4 py-1.5 text-sm border rounded-full">Work</button>
+                        <button className="px-4 py-1.5 text-sm border rounded-full">Warehouse</button>
+                        <button className="px-4 py-1.5 text-sm border rounded-full">Other</button>
+                      </div>
+                    </div>
+                    {/* Location Choice */}
+                    <div>
+                      <p className="text-sm font-medium mb-2">Are you at this address right now?</p>
+                      <div className="flex flex-col sm:flex-row gap-4 text-sm">
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name="location" />
+                          Yes, use my present location
+                        </label>
+                        <label className="flex items-center gap-2">
+                          <input type="radio" name="location" defaultChecked />
+                          No, I will add the location manually
+                        </label>
+                      </div>
+                    </div>
+
+                    {/* Search Address */}
+                    <div className="bg-gray-50 rounded-lg p-4">
+                      <label className="text-sm font-medium">Search for your pickup address location/building/area/landmark</label>
+                      <p className="text-xs text-gray-500 mb-2">Please add minimum 5 characters</p>
+                      <div className="relative">
+                        <input type="text" placeholder="Search Location" className="w-full border rounded-md pl-10 pr-3 py-2 text-sm"/>
+                        <span className="absolute left-3 top-2.5 text-gray-400"><IoSearchOutline /></span>
+                      </div>
+                    </div>
+
+                    {/* Accordions */}
+                    <div className="border-t pt-4 flex justify-between items-center text-sm text-gray-600 cursor-pointer">
+                      <span>Contact Details</span>
+                      <span><IoIosArrowDown /></span>
+                    </div>
+
+                    <div className="border-t pt-4 flex justify-between items-center text-sm text-gray-600 cursor-pointer">
+                      <span>Operational timings</span>
+                      <span><IoIosArrowDown /></span>
+                    </div>
+                    <button className="text-indigo-600 text-sm font-medium flex items-center gap-1">+ Add RTO Address and Supplier <IoIosArrowDown /></button>
+                  </div>
+
+                  {/* Footer */}
+                  <div className="px-6 py-4 border-t flex justify-end gap-4 mt-6">
+                    <button onClick={() => setOpenModal(false)} className="px-5 py-2 border border-indigo-500 text-indigo-600 rounded-md text-sm">Cancel</button>
+                    <button className="px-6 py-2 bg-indigo-600 text-white rounded-md text-sm">Verify and Save Address</button>
+                  </div>
+                </div>
+              </DialogPanel>
+            </Transition.Child>
           </div>
-        </Dialog>
-      </Transition>
+        </div>
+      </div>
+    </Dialog>
+  </Transition>
+
+  {/* Modal for Edit Pickup Location */}
+  <Transition show={openEditModal} as={Fragment}>
+    <Dialog as="div" className="relative z-10" onClose={setOpenEditModal}>
+      <Transition.Child as={Fragment} enter="ease-in-out duration-500" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in-out duration-500" leaveFrom="opacity-100" leaveTo="opacity-0">
+        <div className="fixed inset-0 bg-gray-900/50" />
+      </Transition.Child>
+      <div className="fixed inset-0 overflow-hidden">
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
+            <Transition.Child as={Fragment} enter="transform transition ease-in-out duration-500" enterFrom="translate-x-full" enterTo="translate-x-0" leave="transform transition ease-in-out duration-500" leaveFrom="translate-x-0" leaveTo="translate-x-full">
+              <DialogPanel className="pointer-events-auto relative w-full max-w-7xl bg-white shadow-xl flex flex-col">
+                <div className="overflow-auto">
+                  {/* Header */}
+                  <div className="flex justify-between items-center px-6 py-4 border-b">
+                    <DialogTitle className="text-lg font-semibold">Edit Pickup Location</DialogTitle>
+                    <button onClick={() => setOpenEditModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
+                      &times;
+                    </button>
+                  </div>
+                  <div className="p-6 space-y-8 max-w-7xl mx-auto">
+                    {/* Address Details */}
+                    <section className="space-y-4">
+                      <h3 className="text-sm font-semibold">Address Details</h3>
+                      {/* Tags */}
+                      <div className="flex flex-wrap gap-2">
+                        <button className="px-4 py-1.5 text-sm rounded-full border border-indigo-500 text-indigo-600 bg-indigo-50">Home</button>
+                        <button className="px-4 py-1.5 text-sm rounded-full border">Work</button>
+                        <button className="px-4 py-1.5 text-sm rounded-full border">Warehouse</button>
+                        <button className="px-4 py-1.5 text-sm rounded-full border">Other</button>
+                      </div>
+                      {/* Address + Map */}
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg">
+                        {/* Address Form */}
+                        <div className="space-y-4">
+                          <div>
+                            <label className="text-xs font-medium">Complete address</label>
+                            <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium">Landmark</label>
+                            <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" placeholder="Nearby landmark" />
+                          </div>
+                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                            <div>
+                              <label className="text-xs font-medium">Pincode</label>
+                              <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium">City</label>
+                              <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                            </div>
+                            <div>
+                              <label className="text-xs font-medium">State</label>
+                              <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                            </div>
+                          </div>
+                          <div>
+                            <label className="text-xs font-medium">Country</label>
+                            <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                          </div>
+                        </div>
+                        {/* Map Placeholder */}
+                        <div className="relative border rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
+                          <span className="text-gray-500 text-sm">Google Map Preview</span>
+                          <button className="absolute bottom-3 right-3 bg-white border px-3 py-1.5 text-xs rounded-md text-indigo-600">✎ Edit Location</button>
+                        </div>
+                      </div>
+                    </section>
+                    {/* Contact Details */}
+                    <section className="border-t pt-6 space-y-4">
+                      <h3 className="text-sm font-semibold">Contact Details</h3>
+                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        <div>
+                          <label className="text-xs font-medium">Name</label>
+                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Contact Number</label>
+                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                          <span className="text-xs text-green-600 font-medium">✔ Verified</span>
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Email Address</label>
+                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Role</label>
+                          <select className="w-full mt-1 border rounded-md px-3 py-2 text-sm">
+                            <option>Select Role</option>
+                          </select>
+                        </div>
+                      </div>
+                      {/* Alternate Contact */}
+                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
+                        <div>
+                          <label className="text-xs font-medium">Alternate Name</label>
+                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Alternate Phone</label>
+                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Email</label>
+                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                          <label className="text-xs font-medium">Role</label>
+                          <select className="w-full mt-1 border rounded-md px-3 py-2 text-sm">
+                            <option>Select Role</option>
+                          </select>
+                        </div>
+                      </div>
+                    </section>
+                    {/* Operational Timings */}
+                    <section className="border-t pt-6 space-y-4">
+                      <h3 className="text-sm font-semibold">Operational Timings</h3>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <select className="border rounded-md px-3 py-2 text-sm">
+                          <option>Select Days</option>
+                        </select>
+                        <select className="border rounded-md px-3 py-2 text-sm">
+                          <option>Opening Time</option>
+                        </select>
+                        <select className="border rounded-md px-3 py-2 text-sm">
+                          <option>Closing Time</option>
+                        </select>
+                      </div>
+                    </section>
+                    {/* RTO & Supplier */}
+                    <section className="border-t pt-6 space-y-4 bg-gray-50 p-4 rounded-lg">
+                      <h3 className="text-sm font-semibold text-indigo-600">+ Add RTO Address and Supplier</h3>
+                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                        <input className="border rounded-md px-3 py-2 text-sm" placeholder="Supplier/Vendor Name" />
+                        <input className="border rounded-md px-3 py-2 text-sm" placeholder="Supplier GSTIN" />
+                        <select className="border rounded-md px-3 py-2 text-sm">
+                          <option>Select Address</option>
+                        </select>
+                      </div>
+                    </section>
+                    {/* Footer */}
+                    <div className="flex justify-end gap-4 pt-6">
+                      <button onClick={() => setOpenEditModal(false)} className="px-6 py-2 border border-indigo-500 text-indigo-600 rounded-md text-sm">Cancel</button>
+                      <button className="px-6 py-2 bg-indigo-600 text-white rounded-md text-sm">Verify and Save Address</button>
+                    </div>
+                  </div>
+                </div>
+              </DialogPanel>
+            </Transition.Child>
+          </div>
+        </div>
+      </div>
+    </Dialog>
+  </Transition>
     
     </>
   )
