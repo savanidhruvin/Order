@@ -1,4 +1,4 @@
-import React, { useState, Fragment } from 'react'
+import React, { useState, useEffect, Fragment } from 'react'
 import { FaLessThan } from "react-icons/fa6";
 import { MdOutlineEdit } from "react-icons/md";
 import { LuPlus } from "react-icons/lu";
@@ -15,8 +15,17 @@ import { HiMiniChevronLeft } from "react-icons/hi2";
 import { FaBagShopping } from "react-icons/fa6";
 import { HiOutlineLightBulb } from "react-icons/hi";
 
+import { useDispatch, useSelector } from 'react-redux';
+import { GetPickupAddresses } from '../store/slices/pickupaddressSlice';
 
 const AddOrder = () => {
+  const dispatch = useDispatch();
+  const { pickupAddresses, loading, message } = useSelector(state => state.pickupAddresses);
+
+  useEffect(() => {
+    dispatch(GetPickupAddresses());
+  }, [dispatch]);
+  
   const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
   const [products, setProducts] = useState([
@@ -79,7 +88,7 @@ const AddOrder = () => {
       </div>
     </div> */}
     <div>
-      {/* <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6 mt-5">
+      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6 mt-5">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-xs sm:text-sm">Pickup Address</h3>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -88,13 +97,39 @@ const AddOrder = () => {
           </div>
         </div>
 
-        <div className="mt-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0 border rounded-md px-3 sm:px-4 py-2 sm:py-3">
-          <span className="text-xs sm:text-sm font-medium break-words">Home | 11 sarita vihar South Delhi Delhi-110076</span>
-          <div className="flex items-center gap-2 text-xs sm:text-sm text-green-600 font-medium shrink-0">✔ Verified
-            <span className="text-gray-400"><FaAngleDown /></span>
-          </div>
+        <div className="mt-4 border rounded-md px-4 py-4 bg-white">
+          {loading ? (
+            <span className="text-sm font-medium text-gray-500">Loading...</span>
+          ) : pickupAddresses && pickupAddresses.length > 0 ? (
+            <div
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3
+              ${pickupAddresses.length > 3 ? 'max-h-64 overflow-y-auto pr-1' : ''}`}
+            >
+              {pickupAddresses.map((p) => (
+                <div
+                  key={p.id}
+                  className="rounded-xl p-4 cursor-pointer transition
+                  bg-white
+                  border border-gray-200
+                  hover:border-purple-500 hover:shadow-md"
+                >
+                  <p className="text-sm font-semibold text-gray-900 leading-snug">
+                    {p.address}
+                  </p>
+
+                  <p className="text-xs text-gray-500 mt-2">
+                    {p.city}, {p.state} - {p.pin_code ?? p.pincode}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span className="text-sm text-gray-400">
+              No pickup addresses found
+            </span>
+          )}
         </div>
-      </div> */}
+      </div>
       <div className="bg-white border border-gray-200 rounded-lg mt-4 p-4 sm:p-6 mb-4 sm:mb-6">
         <h3 className="font-semibold text-xs sm:text-sm mb-1">Delivery Details</h3>
         <p className="text-xs text-gray-500 mb-4 sm:mb-5">Enter the Delivery Details of your buyer for whom you are making this order</p>
