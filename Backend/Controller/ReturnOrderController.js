@@ -208,3 +208,73 @@ exports.returnCheckavailblity = async (req,res)=>{
             return getErrorResponse(res, error?.response?.data?.status_code || 500, message);
         }
 }
+
+
+exports.mannualReturnpartner = async (req, res) => {
+    try {
+        const { courierId } = req.body;
+        const { id } = req.params; // orderId
+
+        if (!courierId || !id) {
+            return getErrorResponse(res, 400, "orderId and courierId required");
+        }
+
+        const order = await Order.findById(id);
+        if (!order || !order.returnShipmentId) {
+            return getErrorResponse(res, 404, "Return shipment not found");
+        }
+
+        const headers = {
+            Authorization: `Bearer ${req.token}`,
+            "Content-Type": "application/json"
+        };
+
+        // 1️⃣ Assign courier
+        const courierRes = await axios.post(
+            `${process.env.SHIPROCKET_URL}/courier/assign/awb`,
+            {
+                shipment_id: order.returnShipmentId,
+                courier_id: courierId
+            },
+            { headers }
+        );
+
+        const awb = courierRes.data?.data?.awb_code || courierRes.data?.awb_code;
+        if (!awb) throw new Error("AWB not generated");
+
+        // 2️⃣ Generate label
+        const labelRes = await axios.post(
+            `${process.env.SHIPROCKET_URL}/courier/generate/label`,
+            { shipment_id: order.returnShipmentId },
+            { headers }
+        );
+
+        const label_url = labelRes.data?.data?.label_url || labelRes.data?.label_url;
+
+        // 3️⃣ Schedule pickup
+        await axios.post(
+            `${process.env.SHIPROCKET_URL}/courier/generate/pickup`,
+            { shipment_id: order.returnShipmentId },
+            { headers }
+        );
+
+        // 4️⃣ Save in DB
+        await Order.findByIdAndUpdate(id, {
+            returnAwb: awb,
+            returnLabel: label_url,
+            returnTracking: `https://shiprocket.co/tracking/${awb}`,
+            returnCourierId: courierId,
+            returnStatus: "pickup_scheduled"
+        });
+
+        return getSuccessResponse(res, {
+            awb,
+            label_url,
+            tracking: `https://shiprocket.co/tracking/${awb}`
+        }, "Return courier assigned successfully");
+
+    } catch (error) {
+        const message = error?.response?.data || error.message;
+        return getErrorResponse(res, 500, message);
+    }
+};

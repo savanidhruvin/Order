@@ -100,6 +100,9 @@ const pickupAddressSchema = new mongoose.Schema(
             type: Object,
             default: {}
         },
+        returnShipmentId: {
+            type: Number,
+        },
         returnAwb: {
             type: String
         },

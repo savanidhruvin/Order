@@ -4,7 +4,7 @@ const { Authentication } = require('../Controller/Auth');
 const { addPickupAddress, getAllPickupAddresses, getPickupAddressByLocation, updatePickupAddress, deletePickupAddress, setDefaultPickupAddress, getPickupAddressById } = require('../Controller/PickupAddressController');
 const getToken = require('../utils/getShiprocketToken');
 const { createOrder, checkServiceability, getChargeandday, cancleOrder, getAllOrder, getOrderById, mannualShipment } = require('../Controller/OrderController');
-const { createReturnOrder, returnCheckavailblity } = require('../Controller/ReturnOrderController');
+const { createReturnOrder, returnCheckavailblity, mannualReturnpartner } = require('../Controller/ReturnOrderController');
 const routes = express.Router();
 
 routes.get('/getToken',Authentication);
@@ -31,4 +31,5 @@ routes.post('/getChargeandDay',getToken,getChargeandday)
 // return order
 routes.post('/returnOrder/:id',getToken,createReturnOrder);
 routes.post('/checkreturnAvailbility',getToken,returnCheckavailblity)
+routes.post('/mannualReturnpartner/:id',getToken,mannualReturnpartner)
 module.exports = routes;
