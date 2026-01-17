@@ -83,8 +83,17 @@ const pickupAddressSchema = new mongoose.Schema(
         },
         status:{
             type:String,
-            enum:['pending','proccess','cancle'],
+            enum:['pending','proccess','cancle','return'],
             default:'pending'
+        },
+        awb:{
+            type : String
+        },
+        label_url:{
+            type : String
+        },
+        tracking_url:{
+            type : String
         }
     },
     {

@@ -1,6 +1,5 @@
 
 const Order = require("../Modal/Order");
-const PickupAddress = require("../Modal/PickupAddress");
 const { getErrorResponse } = require("../utils/Error.utils");
 const { getSuccessResponse } = require("../utils/Succes.utils");
 const { default: axios } = require("axios");
@@ -20,6 +19,28 @@ function getTodayDateTime() {
 }
 
 
+async function getPrimaryPickupAddress(token) {
+    const response = await axios.get(
+        `${process.env.SHIPROCKET_URL}/settings/company/pickup`,
+        {
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+        }
+    );
+
+    const addresses = response.data.data.shipping_address;
+
+    const primaryAddress = addresses.find(
+        (addr) => addr.is_primary_location === 1
+    );
+
+    //   console.log("Primary Pickup Address:", primaryAddress);
+
+    return primaryAddress;
+}
+
 exports.createOrder = async (req, res) => {
     try {
         const {
@@ -36,15 +57,8 @@ exports.createOrder = async (req, res) => {
             return res.status(400).json({ success: false, message: "All fields required" });
         }
 
-        let pickupAddress = await PickupAddress.findOne({ is_default: true })
-
-        if (!pickupAddress) {
-            return res.status(400).json({ success: false, message: "no default pickup Address set." });
-        }
-
         // Create new order
         const order = await Order.create({
-            pickup_location: pickupAddress?._id,
             items,
             shippingInfo,
             subTotal,
@@ -63,7 +77,7 @@ exports.createOrder = async (req, res) => {
 
 const createShipping = async (req, res, order) => {
     try {
-        let pickupAddress = await PickupAddress.findById(order?.pickup_location)
+        let pickupAddress = await getPrimaryPickupAddress(req.token)
 
         const order_items = order.items.map(item => ({
             name: item.name,
@@ -132,7 +146,7 @@ const createShipping = async (req, res, order) => {
 
         // for  automatic courrier generate
 
-        // const autoProcess = await processShiprocketShipment(req, response.data.payload.shipment_id)
+        // const autoProcess = await automaticShipment(req, response.data.payload.shipment_id)
 
 
         await Order.findByIdAndUpdate(
@@ -140,9 +154,6 @@ const createShipping = async (req, res, order) => {
             {
                 orderId: response.data.payload.order_id,
                 shipmentId: response.data.payload.shipment_id,
-                // awb: autoProcess.awb,
-                // label_url: autoProcess.label_url,
-                // tracking_url: autoProcess.tracking_url,
                 shipmentDetail: response.data.payload,
                 order_date: getTodayDateTime(order.created)
             },
@@ -159,13 +170,12 @@ const createShipping = async (req, res, order) => {
 }
 
 // current this not worked to run this do kyc 
-const processShiprocketShipment = async (req, shipment_id) => {
+const automaticShipment = async (req, shipment_id) => {
     try {
         const headers = {
             Authorization: `Bearer ${req.token}`,
             "Content-Type": "application/json"
         }
-        console.log(shipment_id)
 
         const courierRes = await axios.post(
             `${process.env.SHIPROCKET_URL}/courier/assign/awb`,
@@ -173,7 +183,8 @@ const processShiprocketShipment = async (req, shipment_id) => {
             { headers }
         )
 
-        const awb = courierRes.data.awb_code
+        const awb = courierRes.data?.data?.awb_code || courierRes.data?.awb_code
+        if (!awb) throw new Error("AWB not generated")
 
         const labelRes = await axios.post(
             `${process.env.SHIPROCKET_URL}/courier/generate/label`,
@@ -181,7 +192,7 @@ const processShiprocketShipment = async (req, shipment_id) => {
             { headers }
         )
 
-        const label_url = labelRes.data.label_url
+        const label_url = labelRes.data?.data?.label_url || labelRes.data?.label_url
 
         await axios.post(
             `${process.env.SHIPROCKET_URL}/courier/generate/pickup`,
@@ -189,20 +200,88 @@ const processShiprocketShipment = async (req, shipment_id) => {
             { headers }
         )
 
-        return {
-            success: true,
-            awb,
-            label_url,
-            tracking_url: `https://shiprocket.co/tracking/${awb}`
-        }
+        const orderData = await Order.updateOne(
+            { shipmentId: shipment_id },
+            {
+                awb,
+                label_url,
+                tracking_url: `https://shiprocket.co/tracking/${awb}`
+            }
+        )
 
+        return getSuccessResponse(res, orderData, "Order shipment done successfully");
     } catch (error) {
         const message = error?.response?.data?.message || error?.message
-        console.log(error?.response)
         throw new Error(message)
     }
 }
 
+exports.mannualShipment = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { courierId } = req.body;
+
+        if (!id || !courierId) {
+            return res.status(400).json({ success: false, message: "orderId and courierId is require" });
+        }
+
+        const order = await Order.findById(id);
+
+        if (!order) {
+            return res.status(404).json({
+                status: false,
+                message: "Order not found"
+            });
+        }
+
+        const headers = {
+            Authorization: `Bearer ${req.token}`,
+            "Content-Type": "application/json"
+        }
+
+        const courierRes = await axios.post(
+            `${process.env.SHIPROCKET_URL}/courier/assign/awb`,
+            {
+                shipment_id: order.shipmentId,
+                courier_id: courierId,
+            },
+            { headers }
+        )
+
+        const awb = courierRes.data?.data?.awb_code || courierRes.data?.awb_code
+
+        const labelRes = await axios.post(
+            `${process.env.SHIPROCKET_URL}/courier/generate/label`,
+            { shipment_id: order.shipmentId },
+            { headers }
+        )
+
+        const label_url = labelRes.data?.data?.label_url || labelRes.data?.label_url
+
+        await axios.post(
+            `${process.env.SHIPROCKET_URL}/courier/generate/pickup`,
+            { shipment_id: order.shipmentId },
+            { headers }
+        )
+
+        const orderData = await Order.updateOne(
+            { shipmentId: order.shipmentId },
+            {
+                awb,
+                label_url,
+                tracking_url: `https://shiprocket.co/tracking/${awb}`
+            }
+        )
+        return {
+            success: true,
+            orderData
+        }
+
+    } catch (error) {
+        const message = error?.response?.data?.message || error?.message;
+        return getErrorResponse(res, error?.response?.data?.status_code || 500, message);
+    }
+};
 
 exports.checkServiceability = async (req, res) => {
 
@@ -211,7 +290,7 @@ exports.checkServiceability = async (req, res) => {
         if (!deliveryPincode) {
             return res.status(400).json({ success: false, message: "Delivery Pincode required" });
         }
-        let pickupAddress = await PickupAddress.findOne({ is_default: true })
+        let pickupAddress = await getPrimaryPickupAddress(req.token)
         const response = await axios.get(
             `${process.env.SHIPROCKET_URL}/courier/serviceability/`,
             {
@@ -231,7 +310,7 @@ exports.checkServiceability = async (req, res) => {
             return getErrorResponse(res, 404, 'Not courrier service availble fro this pincode');
         }
 
-        return getSuccessResponse(res, response.data.data, "Order created successfully");
+        return getSuccessResponse(res, response.data.data, "Data get Succesfully");
     }
     catch (error) {
         const message = error?.response?.data || error?.message;
@@ -247,7 +326,7 @@ exports.getChargeandday = async (req, res) => {
         if (!deliveryPincode) {
             return res.status(400).json({ success: false, message: "Delivery Pincode required" });
         }
-        let pickupAddress = await PickupAddress.findOne({ is_default: true })
+        let pickupAddress = await getPrimaryPickupAddress(req.token)
         const response = await axios.get(
             `${process.env.SHIPROCKET_URL}/courier/serviceability/`,
             {
@@ -325,7 +404,7 @@ exports.cancleOrder = async (req, res) => {
         return getSuccessResponse(res, order, "Order cancle successfully");
 
     } catch (error) {
-      const message = error?.response?.data || error?.message;
+        const message = error?.response?.data || error?.message;
         return getErrorResponse(res, error?.response?.data?.status_code || 500, message);
     }
 }
