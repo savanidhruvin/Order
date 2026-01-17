@@ -5,6 +5,9 @@ import { IoCloseSharp } from "react-icons/io5";
 import { MdModeEdit } from "react-icons/md";
 import img from './Img/com.png'
 import { Fragment } from "react";
+import { FaTrash } from 'react-icons/fa6';
+import { useDispatch, useSelector } from 'react-redux';
+import { GetAllOrder } from '../store/slices/orderSlice';
 
 
 const Order = () => {
@@ -12,6 +15,12 @@ const Order = () => {
   const [open, setOpen] = useState(false);
   const [off, setOff] = useState(false)
   const dropdownRef = useRef(null);
+  const dispatch = useDispatch()
+  const orderMap = useSelector(state => state?.orders?.orders.data)
+
+  useEffect(()=>{
+     dispatch(GetAllOrder())
+  },[])
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -22,6 +31,16 @@ const Order = () => {
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  function formatDate(dateStr) {
+    const date = new Date(dateStr?.replace(" ", "T")); 
+    return date?.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric"
+    });
+  }
+  
 
   return (
     <div>
@@ -34,7 +53,7 @@ const Order = () => {
            <div className="relative overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
              <table className="w-full text-sm text-left text-gray-600">
            
-               <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10">
+               <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10 shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
                  <tr>
                    <th className="px-6 py-4 font-bold text-[14px] whitespace-nowrap">Order Details</th>
                    <th className="px-6 py-4 font-bold text-[14px] whitespace-nowrap">Customer</th>
@@ -48,116 +67,79 @@ const Order = () => {
                </thead>
            
                <tbody className="divide-y divide-gray-200">
+
+                  {orderMap?.map((ele)=>{
+                     return(
+                           <tr key={ele?._id} className="hover:bg-gray-50 transition">
+                           <td className="px-6 py-4 whitespace-nowrap">
+                             <div className="font-medium text-gray-900">{ele?.orderId}</div>
+                             <div className="text-xs text-gray-500">{formatDate(ele?.order_date)}</div>
+                           </td>
+                   
+                           <td className="px-6 py-4">
+                             <div className="font-medium text-gray-900">{ele?.shippingInfo?.firstName} {ele?.shippingInfo?.lastName}</div>
+                             <div className="text-xs text-gray-500">{ele?.shippingInfo?.email}</div>
+                           </td>
+                   
+                           <td className="px-6 py-4">
+                              {ele?.items?.map((ele)=>{
+                                 return (
+                                     <div key={ele?._id}>{ele?.name} </div>
+                                 )
+                              })}
+                           </td>
+                   
+                           <td className="px-6 py-4">
+                             {ele?.dimension?.weight}kg • Box
+                           </td>
+                   
+                           <td className="px-6 py-4 font-semibold text-green-600">
+                             ₹2,999
+                           </td>
+                   
+                           <td className="px-6 py-4">
+                             Ahmedabad, Gujarat
+                           </td>
+                   
+                           <td className="px-6 py-4">
+                             <span className="px-3 py-1 text-xs rounded-full bg-red-500 text-white font-medium">
+                               {ele?.status}
+                             </span>
+                           </td>
+                   
+                           <td className="px-6 py-4 text-center">
+                               <div className='flex items-center'>
+                                 <button onClick={()=> setOff(true)} className="px-2 py-1 bg-purple-500 text-white font-[500] rounded whitespace-nowrap text-sm mr-3 hover:bg-purple-600 transition-colors duration-200">
+                                  Ship Now
+                                 </button>
+                                 <div className="relative inline-block" ref={dropdownRef}>
+                                  <button
+                                    onClick={() => setOpen(!open)}
+                                    className="p-2 rounded-full hover:bg-gray-100 transition"
+                                  >
+                                    <HiDotsHorizontal className="text-lg text-gray-600" />
+                                  </button>
+                            
+                                  {open && (
+                                    <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                                      
+                                      <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center" onClick={() => {   setOpen(false);  }}>
+                                        <MdModeEdit className='me-2 text-[16px] text-green-500' /> Edit Order
+                                      </button>
+                            
+                                      <button className="w-full text-left px-4 py-2 text-sm  hover:bg-red-50 transition flex items-center" onClick={() => {   setOpen(false);   console.log("Cancel Order"); }}>
+                                        <FaTrash className='me-2 text-[16px] text-red-500' /> Cancel Order
+                                      </button>
+                            
+                                    </div>
+                                   )}
+                                 </div>
+                               </div>
+                           </td>
+                        </tr>
+                     )
+                  })}
            
-                 <tr className="hover:bg-gray-50 transition">
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     <div className="font-medium text-gray-900">#ORD-1023</div>
-                     <div className="text-xs text-gray-500">12 Jan 2026</div>
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     <div className="font-medium text-gray-900">Rahul Patel</div>
-                     <div className="text-xs text-gray-500">rahul@gmail.com</div>
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     Apple MacBook Pro 17"
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     2kg • Box
-                   </td>
-           
-                   <td className="px-6 py-4 font-semibold text-green-600">
-                     ₹2,999
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     Ahmedabad, Gujarat
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     <span className="px-3 py-1 text-xs rounded-full bg-green-100 text-green-700 font-medium">
-                       Delivered
-                     </span>
-                   </td>
-           
-                   <td className="px-6 py-4 text-center">
-                       <div className='flex items-center'>
-                         <button onClick={()=> setOff(true)} className="px-2 py-1 bg-purple-500 text-white font-[500] rounded whitespace-nowrap text-sm mr-3 hover:bg-purple-600 transition-colors duration-200">
-                          Ship Now
-                         </button>
-                         <div className="relative inline-block" ref={dropdownRef}>
-                          <button
-                            onClick={() => setOpen(!open)}
-                            className="p-2 rounded-full hover:bg-gray-100 transition"
-                          >
-                            <HiDotsHorizontal className="text-lg text-gray-600" />
-                          </button>
-                    
-                          {open && (
-                            <div className="absolute right-0 mt-2 w-36 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                              
-                              <button className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition flex items-center" onClick={() => {   setOpen(false);  }}>
-                                <MdModeEdit className='me-2 text-[16px] text-green-500' /> Edit Order
-                              </button>
-                    
-                              <button className="w-full text-left px-4 py-2 text-sm  hover:bg-red-50 transition flex items-center" onClick={() => {   setOpen(false);   console.log("Cancel Order"); }}>
-                                <MdModeEdit className='me-2 text-[16px] text-red-500' /> Cancel Order
-                              </button>
-                    
-                            </div>
-                           )}
-                         </div>
-                       </div>
-                     {/* // <button className="text-red-600 hover:text-red-800 text-sm font-medium">
-                     //   Delete
-                     // </button>  */}
-                   </td>
-                 </tr>
-           
-                 <tr className="hover:bg-gray-50 transition">
-                   <td className="px-6 py-4 whitespace-nowrap">
-                     <div className="font-medium text-gray-900">#ORD-1024</div>
-                     <div className="text-xs text-gray-500">13 Jan 2026</div>
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     <div className="font-medium text-gray-900">Amit Shah</div>
-                     <div className="text-xs text-gray-500">amit@gmail.com</div>
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     Magic Mouse 2
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     0.5kg • Envelope
-                   </td>
-           
-                   <td className="px-6 py-4 font-semibold text-green-600">
-                     ₹99
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     Surat, Gujarat
-                   </td>
-           
-                   <td className="px-6 py-4">
-                     <span className="px-3 py-1 text-xs rounded-full bg-yellow-100 text-yellow-700 font-medium">
-                       Pending
-                     </span>
-                   </td>
-           
-                   <td className="px-6 py-4 text-center">
-                     <button className="text-blue-600 hover:text-blue-800 text-sm font-medium mr-3">
-                       View
-                     </button>
-                     <button className="text-red-600 hover:text-red-800 text-sm font-medium">
-                       Delete
-                     </button>
-                   </td>
-                 </tr>
            
                </tbody>
              </table>
@@ -191,7 +173,7 @@ const Order = () => {
                           leaveTo="translate-x-full"
                         >
                           <DialogPanel
-                            className="pointer-events-auto relative w-[290px] sm:w-[400px] lg:w-[750px] 2xl:w-[1700px] bg-white shadow-xl flex flex-col"
+                            className="pointer-events-auto relative w-[290px] sm:w-[400px] lg:w-[750px] 2xl:w-[1200px] 3xl:w-[1700px] bg-white shadow-xl flex flex-col"
                           >
                             <div className="relative flex h-full flex-col overflow-y-auto">
               
@@ -235,7 +217,7 @@ const Order = () => {
                                               <div className="relative overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white mt-5">
                                                  <table className="w-full text-sm text-left text-gray-600">
                                                
-                                                   <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10">
+                                                   <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10 shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
                                                      <tr>
                                                        <th className="px-6 py-4 font-bold text-[14px] whitespace-nowrap">Courier Partner</th>
                                                        <th className="px-6 py-4 font-bold text-[14px] whitespace-nowrap">Rating</th>

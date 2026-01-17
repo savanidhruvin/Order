@@ -1,59 +1,62 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createAsyncThunk, createSlice } from '@reduxjs/toolkit';
+import axios from 'axios';
+const BaseUrl = "http://localhost:5000/api"
+
+export const GetAllOrder = createAsyncThunk(
+  "admin/getapplication",
+  async (_, { rejectWithValue }) => {
+      try {
+
+          const response = await axios.get(`${BaseUrl}/getAllOrder`, {
+              // headers: {
+              //     Authorization: `Bearer ${token}`
+              // }
+          })
+
+          return response.data
+      } catch (error) {
+          return rejectWithValue(
+              error.response?.data || { message: "Unexpected error occurred" }
+          );
+      }
+  }
+)
 
 const initialState = {
   orders: [],
   loading: false,
   error: null,
+  success:false,
+  message:""
 };
 
 const orderSlice = createSlice({
   name: 'orders',
   initialState,
   reducers: {
-    // Add order
-    addOrder: (state, action) => {
-      state.orders.push(action.payload);
-    },
-    
-    // Update order
-    updateOrder: (state, action) => {
-      const { id, updatedData } = action.payload;
-      const index = state.orders.findIndex(order => order.id === id);
-      if (index !== -1) {
-        state.orders[index] = { ...state.orders[index], ...updatedData };
-      }
-    },
-    
-    // Delete order
-    deleteOrder: (state, action) => {
-      state.orders = state.orders.filter(order => order.id !== action.payload);
-    },
-    
-    // Set orders
-    setOrders: (state, action) => {
-      state.orders = action.payload;
-    },
-    
-    // Set loading
-    setLoading: (state, action) => {
-      state.loading = action.payload;
-    },
-    
-    // Set error
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
+     
   },
+  extraReducers: (builder) => {
+    builder
+    .addCase(GetAllOrder.pending, (state, action) => {
+      state.loading = true;
+      state.message = "Fetching Get AllOrder..."
+    })
+    .addCase(GetAllOrder.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true
+      state.orders = action.payload
+      state.message = "Fetching AllOrder Successfully..."
+    })
+    .addCase(GetAllOrder.rejected, (state, action) => {
+      state.loading = false
+      state.success = false
+      state.message = action.payload?.message || "Failed to get AllOrder";
+    })
+  }
 });
 
-export const {
-  addOrder,
-  updateOrder,
-  deleteOrder,
-  setOrders,
-  setLoading,
-  setError,
-} = orderSlice.actions;
+export const { } = orderSlice.actions;
 
 export default orderSlice.reducer;
 
