@@ -79,7 +79,7 @@ const AddOrder = () => {
       </div>
     </div> */}
     <div>
-      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6 mt-5">
+      {/* <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-5 mb-4 sm:mb-6 mt-5">
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-xs sm:text-sm">Pickup Address</h3>
           <div className="flex items-center gap-2 sm:gap-4">
@@ -94,8 +94,8 @@ const AddOrder = () => {
             <span className="text-gray-400"><FaAngleDown /></span>
           </div>
         </div>
-      </div>
-      <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
+      </div> */}
+      <div className="bg-white border border-gray-200 rounded-lg mt-4 p-4 sm:p-6 mb-4 sm:mb-6">
         <h3 className="font-semibold text-xs sm:text-sm mb-1">Delivery Details</h3>
         <p className="text-xs text-gray-500 mb-4 sm:mb-5">Enter the Delivery Details of your buyer for whom you are making this order</p>
         
