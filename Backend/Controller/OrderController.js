@@ -412,11 +412,17 @@ exports.cancleOrder = async (req, res) => {
 
 exports.getAllOrder = async (req, res) => {
     try {
-        const localList = await Order.find().lean().populate('pickup_location');
-        if (!localList || !localList.length) {
-            return getErrorResponse(res, 404, 'order not found');
-        }
-        return getSuccessResponse(res, localList);
+        const response = await axios.get(
+            `${process.env.SHIPROCKET_URL}/orders`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${req.token}`,
+                },
+            }
+        );
+        const order = response.data.data;
+        return getSuccessResponse(res, order);
     } catch (error) {
         const message = error.response?.data?.message || error.message;
         return getErrorResponse(res, error?.response?.data?.status_code || 500, message,);
@@ -429,11 +435,20 @@ exports.getOrderById = async (req, res) => {
         if (!id) {
             return res.status(400).json({ success: false, message: "id is required" });
         }
-        const localItem = await Order.findById(id).lean().populate('pickup_location');;
-        if (!localItem) {
+         const response = await axios.get(
+            `${process.env.SHIPROCKET_URL}/orders/show/${id}`,
+            {
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${req.token}`,
+                },
+            }
+        );
+        if (!response) {
             return getErrorResponse(res, 404, 'order not found');
         }
-        return getSuccessResponse(res, localItem);
+        const order = response.data.data;
+        return getSuccessResponse(res,  order);
     } catch (error) {
         const message = error.response?.data?.message || error.message;
         return getErrorResponse(res, error?.response?.data?.status_code || 500, message,);

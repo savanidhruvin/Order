@@ -81,19 +81,33 @@ const pickupAddressSchema = new mongoose.Schema(
         shipmentDetail: {
             type: Object
         },
-        status:{
-            type:String,
-            enum:['pending','proccess','cancle','return'],
-            default:'pending'
+        status: {
+            type: String,
+            enum: ['pending', 'proccess', 'cancle', 'return'],
+            default: 'pending'
         },
-        awb:{
-            type : String
+
+        awb: {
+            type: String
         },
-        label_url:{
-            type : String
+        label_url: {
+            type: String
         },
-        tracking_url:{
-            type : String
+        tracking_url: {
+            type: String
+        },
+        returnOrderDetail: {
+            type: Object,
+            default: {}
+        },
+        returnAwb: {
+            type: String
+        },
+        returnLabel: {
+            type: String
+        },
+        returnTracking: {
+            type: String
         }
     },
     {
