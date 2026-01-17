@@ -14,8 +14,6 @@ import { RiDeleteBin6Line } from "react-icons/ri";
 import { HiMiniChevronLeft } from "react-icons/hi2";
 import { FaBagShopping } from "react-icons/fa6";
 import { HiOutlineLightBulb } from "react-icons/hi";
-import  { useFormik } from 'formik'
-import { OrderSchema } from '../Schema';
 
 
 const AddOrder2 = () => {
@@ -33,30 +31,21 @@ const AddOrder2 = () => {
   ]);
 
   const addProduct = () => {
-    const products = [...AddFormik.values.products];
-  
-    products.push({
-      productName: "",
-      unitPrice: "",
+    setProducts([...products, {
+      id: Date.now(),
+      productName: '',
+      unitPrice: '',
       quantity: 1,
-      discount: "",
-      taxRate: "",
-    });
-  
-    AddFormik.setFieldValue("products", products);
+      discount: '',
+      taxRate: ''
+    }]);
   };
-  
 
-  const deleteProduct = (index) => {
-    if (AddFormik.values.products.length === 1) return;
-  
-    const products = AddFormik.values.products.filter(
-      (_, i) => i !== index
-    );
-  
-    AddFormik.setFieldValue("products", products);
+  const deleteProduct = (id) => {
+    if (products.length > 1) {
+      setProducts(products.filter(product => product.id !== id));
+    }
   };
-  
 
   const updateProduct = (id, field, value) => {
     setProducts(products.map(product => 
@@ -64,81 +53,15 @@ const AddOrder2 = () => {
     ));
   };
 
-  const updateQuantity = (index, type) => {
-    const products = [...AddFormik.values.products];
-  
-    products[index].quantity =
-      type === "inc"
-        ? products[index].quantity + 1
-        : Math.max(1, products[index].quantity - 1);
-  
-    AddFormik.setFieldValue("products", products);
-  };
-
-  const getVolumetricWeight = (length, breadth, height) => {
-    if (!length || !breadth || !height) return "";
-    return ((length * breadth * height) / 5000).toFixed(2);
-  };
-  
-  const calculateTotals = (products) => {
-    let subTotal = 0;
-  
-    products.forEach((item) => {
-      const price = Number(item.unitPrice) || 0;
-      const qty = Number(item.quantity) || 0;
-      const discount = Number(item.discount) || 0;
-      const taxRate = Number(item.taxRate) || 0;
-  
-      const baseAmount = price * qty - discount;
-      const taxAmount = (baseAmount * taxRate) / 100;
-  
-      subTotal += baseAmount + taxAmount;
-    });
-  
-    return {
-      subTotal,
-      total: subTotal, 
-    };
-  };
-  
-  
-
-  const initialValues = {
-    mobile: "",
-    fullName: "",
-    address: "",
-    landmark: "",
-    pincode: "",
-    city: "",
-    state: "",
-  
-    products: [
-      {
-        productName: "",
-        unitPrice: "",
-        quantity: 1,
-        discount: "",
-        taxRate: "",
-      },
-    ],
-  
-    deadWeight: "",
-    length: "",
-    breadth: "",
-    height: "",
-  };
-
-  const AddFormik = useFormik({
-      initialValues: initialValues,
-      validationSchema:OrderSchema,
-      onSubmit : (values , action) => {
-           console.log("OKOKOKO" , values);
-           
+  const updateQuantity = (id, change) => {
+    setProducts(products.map(product => {
+      if (product.id === id) {
+        const newQuantity = Math.max(1, product.quantity + change);
+        return { ...product, quantity: newQuantity };
       }
-  })
-  
-  const { subTotal, total } = calculateTotals(AddFormik.values.products);
-
+      return product;
+    }));
+  };
 
   return (
     <>
@@ -163,7 +86,7 @@ const AddOrder2 = () => {
           </div>
         </div>
       </div>
-    <form onSubmit={AddFormik.handleSubmit}>
+    <form>
       <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
         <h3 className="font-semibold text-xs sm:text-sm mb-1">Delivery Details</h3>
         <p className="text-xs text-gray-500 mb-4 sm:mb-5">Enter the Delivery Details of your buyer for whom you are making this order</p>
@@ -173,45 +96,37 @@ const AddOrder2 = () => {
             <label className="text-xs text-gray-600">Mobile Number</label>
             <div className="flex mt-1">
               <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md text-xs sm:text-sm bg-gray-100">+91</span>
-              <input name="mobile" value={AddFormik.values.mobile} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm outline-none focus:ring-1 focus:ring-purple-500" placeholder="Enter mobile number"/>
+              <input className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm outline-none focus:ring-1 focus:ring-purple-500" placeholder="Enter mobile number"/>
             </div>
-              {AddFormik.touched.mobile && AddFormik.errors.mobile && (<p className="text-red-500 text-xs mt-1">  {AddFormik.errors.mobile}</p>)}
           </div>
 
           <div>
             <label className="text-xs text-gray-600">Full Name</label>  
-            <input name="fullName" value={AddFormik.values.fullName} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Full Name"/>
-            {AddFormik.touched.fullName && AddFormik.errors.fullName && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.fullName} </p>)}
+            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Full Name"/>
           </div>
-
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="text-xs text-gray-600">Complete Address</label>
-            <input name='address' value={AddFormik.values.address} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Buyer's full address"/>
-            {AddFormik.touched.address && AddFormik.errors.address && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.address} </p>)}
+            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Buyer's full address"/>
           </div>
 
           <div>
             <label className="text-xs text-gray-600">Landmark <span className="text-gray-400">(Optional)</span></label>
-            <input name='landmark' value={AddFormik.values.landmark} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter any nearby landmark"/>
-            {AddFormik.touched.landmark && AddFormik.errors.landmark && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.landmark} </p>)}
+            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter any nearby landmark"/>
           </div>
 
           <div>
             <label className="text-xs text-gray-600">Pincode</label>
-            <input name='pincode' value={AddFormik.values.pincode} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur}  className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter pincode"/>
-            {AddFormik.touched.pincode && AddFormik.errors.pincode && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.pincode} </p>)}
+            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter pincode"/>
           </div>
 
           <div>
             <label className="text-xs text-gray-600">City</label>
-            <input name='city' value={AddFormik.values.city} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" placeholder="City"/>
-            {AddFormik.touched.city && AddFormik.errors.city && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.city} </p>)}
+            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" placeholder="City"/>
           </div>
 
           <div>
             <label className="text-xs text-gray-600">State</label>
-            <input name='state' value={AddFormik.values.state} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" placeholder="State"/>
-            {AddFormik.touched.state && AddFormik.errors.state && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.state} </p>)}
+            <input className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" placeholder="State"/>
           </div>
         </div>
 
@@ -222,198 +137,121 @@ const AddOrder2 = () => {
       <div className="bg-white border border-gray-200 rounded-lg p-4 sm:p-6 mb-4 sm:mb-6">
         <h3 className="text-xs sm:text-sm font-semibold mb-3 sm:mb-4">Product Details</h3>
         
-        {AddFormik.values.products.map((_, index) => (
-          <div key={index} className={index > 0 ? "mt-4 sm:mt-6" : ""}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4 items-end">
-                <div className="sm:col-span-2 lg:col-span-2 relative pb-4">
-                    <label className="text-xs text-gray-600">Product Name</label>
-                  
-                    <input
-                      className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
-                      placeholder="Enter or search your product name"
-                      name={`products[${index}].productName`}
-                      value={AddFormik.values.products[index].productName}
-                      onChange={AddFormik.handleChange}
-                      onBlur={AddFormik.handleBlur}
-                    />
-                  
-                    {AddFormik.touched.products?.[index]?.productName &&
-                      AddFormik.errors.products?.[index]?.productName && (
-                        <p className="absolute left-0 -bottom-1 text-red-500 text-[10px]">
-                          {AddFormik.errors.products[index].productName}
-                        </p>
-                     )}
+        {products.map((product, index) => (
+          <div key={product.id} className={index > 0 ? "mt-4 sm:mt-6" : ""}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-3 sm:gap-4 items-end">
+              <div className="sm:col-span-2 lg:col-span-2">
+                <label className="text-xs text-gray-600">Product Name</label>
+                <input 
+                  className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" 
+                  placeholder="Enter or search your product name"
+                  value={product.productName}
+                  onChange={(e) => updateProduct(product.id, 'productName', e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="text-xs text-gray-600">Unit Price</label>
+                <div className="flex mt-1">
+                  <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">₹</span>
+                  <input 
+                    className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                    type="number"
+                    value={product.unitPrice}
+                    onChange={(e) => updateProduct(product.id, 'unitPrice', e.target.value)}
+                  />
                 </div>
- 
+              </div>
 
-                <div className="relative pb-4">
-                 <label className="text-xs text-gray-600">Unit Price</label>
-               
-                 <div className="flex mt-1 h-[38px]">
-                   <span className="px-2 sm:px-3 flex items-center border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">
-                     ₹
-                   </span>
-               
-                   <input 
-                     className="w-full border rounded-r-md px-2 sm:px-3 text-xs sm:text-sm outline-none"
-                     type="number"
-                     name={`products[${index}].unitPrice`}
-                     value={AddFormik.values.products[index].unitPrice}
-                     onChange={AddFormik.handleChange}
-                     onBlur={AddFormik.handleBlur}
-                   />
-                 </div>
-               
-                 {AddFormik.touched.products?.[index]?.unitPrice &&
-                   AddFormik.errors.products?.[index]?.unitPrice && (
-                     <p className="absolute left-0 -bottom-1 text-red-500 text-[10px]">
-                       {AddFormik.errors.products[index].unitPrice}
-                     </p>
-                 )}
-               </div>
+              <div>
+                <label className="text-xs text-gray-600">Quantity</label>
+                <div className="mt-1 flex border rounded-md overflow-hidden h-[38px]">
+                  <button 
+                    type="button"
+                    className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"
+                    onClick={() => updateQuantity(product.id, -1)}
+                  >
+                    <FiMinus />
+                  </button>
+                  <input 
+                    className="w-full text-center text-xs sm:text-sm"
+                    type="number"
+                    value={product.quantity}
+                    onChange={(e) => updateProduct(product.id, 'quantity', Math.max(1, parseInt(e.target.value) || 1))}
+                  />
+                  <button 
+                    type="button"
+                    className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"
+                    onClick={() => updateQuantity(product.id, 1)}
+                  >
+                    <LuPlus />
+                  </button>
+                </div>
+              </div>
 
+              <div>
+                <label className="text-xs text-gray-600">Product Discount <span className="text-gray-400">(Optional)</span></label>
+                <div className="flex mt-1">
+                  <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">₹</span>
+                  <input 
+                    className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
+                    type="number"
+                    value={product.discount}
+                    onChange={(e) => updateProduct(product.id, 'discount', e.target.value)}
+                  />
+                </div>
+              </div>
 
-               <div className="relative pb-4">
-                  <label className="text-xs text-gray-600">Quantity</label>
-                
-                  <div className="mt-1 flex border rounded-md overflow-hidden h-[38px]">
-                    <button
-                      type="button"
-                      className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"
-                      onClick={() => updateQuantity(index, "dec")}
-                    >
-                      <FiMinus />
-                    </button>
-                
+              <div className="sm:col-span-2 lg:col-span-1 flex items-end gap-2">
+                <div className="flex-1">
+                  <label className="text-xs text-gray-600">Tax Rate <span className="text-gray-400">(Optional)</span></label>
+                  <div className="flex mt-1">
+                    <span className="px-2 sm:px-3 py-2 border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">%</span>
                     <input 
-                      className="w-full text-center text-xs sm:text-sm outline-none"
+                      className="w-full border rounded-r-md px-2 sm:px-3 py-2 text-xs sm:text-sm"
                       type="number"
-                      name={`products[${index}].quantity`}
-                      value={AddFormik.values.products[index].quantity}
-                      onChange={AddFormik.handleChange}
-                      onBlur={AddFormik.handleBlur}
+                      value={product.taxRate}
+                      onChange={(e) => updateProduct(product.id, 'taxRate', e.target.value)}
                     />
-                
-                    <button 
-                      type="button"
-                      className="px-2 sm:px-3 bg-gray-100 text-xs sm:text-sm min-w-[36px]"
-                      onClick={() => updateQuantity(index, "inc")}
-                    >
-                      <LuPlus />
-                    </button>
                   </div>
-                
-                  {AddFormik.touched.products?.[index]?.quantity &&
-                    AddFormik.errors.products?.[index]?.quantity && (
-                      <p className="absolute left-0 -bottom-1 text-red-500 text-[10px]">
-                        {AddFormik.errors.products[index].quantity}
-                      </p>
-                  )}
-               </div>
-
-
-               <div className="relative pb-4">
-                 <label className="text-xs text-gray-600">
-                   Product Discount <span className="text-gray-400">(Optional)</span>
-                 </label>
-               
-                 <div className="flex mt-1 h-[38px]">
-                   <span className="px-2 sm:px-3 flex items-center border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">
-                     ₹
-                   </span>
-               
-                   <input 
-                     className="w-full border rounded-r-md px-2 sm:px-3 text-xs sm:text-sm outline-none"
-                     type="number"
-                     name={`products[${index}].discount`}
-                     value={AddFormik.values.products[index].discount}
-                     onChange={AddFormik.handleChange}
-                     onBlur={AddFormik.handleBlur}
-                   />
-                 </div>
-               
-                 {AddFormik.touched.products?.[index]?.discount &&
-                   AddFormik.errors.products?.[index]?.discount && (
-                     <p className="absolute left-0 -bottom-1 text-red-500 text-[10px]">
-                       {AddFormik.errors.products[index].discount}
-                     </p>
-                 )}
                 </div>
-
-
-                <div className="sm:col-span-2 lg:col-span-1 relative pb-4">
-                   <div className="flex items-end gap-2">
-                     
-                     <div className="flex-1">
-                       <label className="text-xs text-gray-600">
-                         Tax Rate <span className="text-gray-400">(Optional)</span>
-                       </label>
-                 
-                       <div className="flex mt-1 h-[38px]">
-                         <span className="px-2 sm:px-3 flex items-center border border-r-0 rounded-l-md bg-gray-100 text-xs sm:text-sm">
-                           %
-                         </span>
-                 
-                         <input 
-                           className="w-full border rounded-r-md px-2 sm:px-3 text-xs sm:text-sm outline-none"
-                           type="number"
-                           name={`products[${index}].taxRate`}
-                           value={AddFormik.values.products[index].taxRate}
-                           onChange={AddFormik.handleChange}
-                           onBlur={AddFormik.handleBlur}
-                         />
-                       </div>
-                     </div>
-                 
-                     <button
-                       type="button"
-                       className="text-red-500 text-base sm:text-lg p-1 sm:p-2 mb-[2px]"
-                       onClick={() => deleteProduct(index)}
-                       disabled={AddFormik.values.products.length === 1}
-                     >
-                       <RiDeleteBin6Line />
-                     </button>
-                   </div>
-                 
-                   {AddFormik.touched.products?.[index]?.taxRate &&
-                     AddFormik.errors.products?.[index]?.taxRate && (
-                       <p className="absolute left-0 -bottom-1 text-red-500 text-[10px]">
-                         {AddFormik.errors.products[index].taxRate}
-                       </p>
-                   )}
-                  </div>
+                <button 
+                  type="button"
+                  className="text-red-500 text-base sm:text-lg mb-1 p-1 sm:p-2"
+                  onClick={() => deleteProduct(product.id)}
+                  disabled={products.length === 1}
+                >
+                  <RiDeleteBin6Line />
+                </button>
+              </div>
             </div>
           </div>
         ))}
 
-       <button
-         type="button"
-         className="mt-4 text-xs sm:text-sm text-purple-600 border border-purple-300 px-3 sm:px-4 py-1.5 rounded-md"
-         onClick={addProduct}
-       >
-         + Add Another Product
-       </button>
-
+        <button 
+          type="button"
+          className="mt-4 text-xs sm:text-sm text-purple-600 border border-purple-300 px-3 sm:px-4 py-1.5 rounded-md w-full sm:w-auto"
+          onClick={addProduct}
+        >
+          + Add Another Product
+        </button>
 
      
 
-       <div className="mt-4 sm:mt-6 bg-blue-50 rounded-md p-3 sm:p-4 text-xs sm:text-sm">
-         <div className="flex justify-between mb-2">
-           <span>Sub-total for Product</span>
-           <span>₹ {subTotal.toFixed(2)}</span>
-         </div>
-       
-         <div className="flex justify-between mb-2">
-           <span>Other Charges</span>
-           <span>₹ 0</span>
-         </div>
-       
-         <div className="flex justify-between font-semibold">
-           <span>Total Order Value</span>
-           <span>₹ {total.toFixed(2)}</span>
-         </div>
-      </div>
-
+        <div className="mt-4 sm:mt-6 bg-blue-50 rounded-md p-3 sm:p-4 text-xs sm:text-sm">
+          <div className="flex justify-between mb-2">
+            <span>Sub-total for Product</span>
+            <span>₹ 0</span>
+          </div>
+          <div className="flex justify-between mb-2">
+            <span>Other Charges</span>
+            <span>₹ 0</span>
+          </div>
+          <div className="flex justify-between font-semibold">
+            <span>Total Order Value</span>
+            <span>₹ 0</span>
+          </div>
+        </div>
 
         <p className="mt-2 text-xs text-gray-500">Note: All the Prices/ Charges are inclusive of GST.</p>
       </div>
@@ -435,10 +273,9 @@ const AddOrder2 = () => {
             <label className="text-xs font-medium">Dead Weight</label>
             <p className="text-xs text-gray-500 mb-1">Physical weight of a package</p>
             <div className="flex">
-              <input name="deadWeight" value={AddFormik.values.deadWeight} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" />
+              <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" />
               <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">kg</span>
             </div>
-            {AddFormik.touched.deadWeight && AddFormik.errors.deadWeight && (<p className="text-red-500 text-xs mt-1">  {AddFormik.errors.deadWeight}</p>)}
             <p className="text-[10px] sm:text-[11px] text-gray-400 mt-1">Note: Minimum chargeable wt is 0.5 kg</p>
           </div>
 
@@ -446,26 +283,17 @@ const AddOrder2 = () => {
             <label className="text-xs font-medium">Package Dimensions</label>
             <p className="text-xs text-gray-500 mb-1">L×B×H of the complete package</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
-              <div>
-                <div className="flex">
-                  <input name="length" value={AddFormik.values.length} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Length" />
-                  <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">cm</span>
-                </div>
-                 {AddFormik.touched.length && AddFormik.errors.length && (<p className="text-red-500 text-xs mt-1">  {AddFormik.errors.length}</p>)}
+              <div className="flex">
+                <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Length" />
+                <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">cm</span>
               </div>
-              <div>
-                 <div className="flex">
-                   <input  name="breadth" value={AddFormik.values.breadth} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Breadth" />
-                   <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">cm</span>
-                 </div>
-                 {AddFormik.touched.breadth && AddFormik.errors.breadth && (<p className="text-red-500 text-xs mt-1">  {AddFormik.errors.breadth}</p>)}
+              <div className="flex">
+                <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Breadth" />
+                <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">cm</span>
               </div>
-              <div>
-                 <div className="flex">
-                   <input name="height" value={AddFormik.values.height} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Height" />
-                   <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">cm</span>
-                 </div>
-                 {AddFormik.touched.height && AddFormik.errors.height && (<p className="text-red-500 text-xs mt-1">  {AddFormik.errors.height}</p>)}
+              <div className="flex">
+                <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Height" />
+                <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">cm</span>
               </div>
             </div>
 
@@ -473,44 +301,21 @@ const AddOrder2 = () => {
           </div>
 
           <div className="lg:col-span-3 sm:mt-3">
-            <label className="text-xs font-medium flex items-center gap-1">
-              Volumetric Weight
-              <span className="text-gray-400">(Auto)</span>
+            <label className="text-xs font-medium flex items-center gap-1">Volumetric Weight
+              <span className="text-gray-400">?</span>
             </label>
-          
             <div className="flex mt-1 sm:mt-4">
-              <input
-                type="text"
-                readOnly
-                value={getVolumetricWeight(
-                  AddFormik.values.length,
-                  AddFormik.values.breadth,
-                  AddFormik.values.height
-                )}
-                className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50 cursor-not-allowed"
-                placeholder="Auto calculated"
-              />
-              <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">
-                kg
-              </span>
+              <input className="w-full border rounded-l-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" />
+              <span className="px-2 sm:px-3 py-2 border border-l-0 rounded-r-md bg-gray-100 text-xs sm:text-sm">kg</span>
             </div>
-          
-            {AddFormik.touched.length &&
-              AddFormik.touched.breadth &&
-              AddFormik.touched.height &&
-              (AddFormik.errors.length ||
-                AddFormik.errors.breadth ||
-                AddFormik.errors.height) && (
-                <p className="text-red-500 text-xs mt-1">
-                  Enter valid package dimensions
-                </p>
-              )}
           </div>
-
         </div>
+
+       
+   
         <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
           <button className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-gray-500 rounded-md text-xs sm:text-sm font-medium">Ship Now</button>
-          <button type='submit' className="px-4 sm:px-6 py-2 sm:py-3 bg-white border border-purple-600 text-purple-600 rounded-md text-xs sm:text-sm font-medium">Add Order</button>
+          <button className="px-4 sm:px-6 py-2 sm:py-3 bg-white border border-purple-600 text-purple-600 rounded-md text-xs sm:text-sm font-medium">Add Order</button>
         </div>
       </div>
     </div>

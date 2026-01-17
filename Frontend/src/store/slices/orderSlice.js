@@ -22,6 +22,26 @@ export const GetAllOrder = createAsyncThunk(
   }
 )
 
+export const CreateOrder = createAsyncThunk(
+  "admin/CreateOrder",
+  async (_, { rejectWithValue }) => {
+      try {
+
+          const response = await axios.post(`${BaseUrl}/createOrder`, {
+              // headers: {
+              //     Authorization: `Bearer ${token}`
+              // }
+          })
+
+          return response.data
+      } catch (error) {
+          return rejectWithValue(
+              error.response?.data || { message: "Unexpected error occurred" }
+          );
+      }
+  }
+)
+
 const initialState = {
   orders: [],
   loading: false,
@@ -52,6 +72,21 @@ const orderSlice = createSlice({
       state.loading = false
       state.success = false
       state.message = action.payload?.message || "Failed to get AllOrder";
+    })
+
+    .addCase(CreateOrder.pending, (state, action) => {
+      state.loading = true;
+      state.message = "Fetching CreateOrder..."
+    })
+    .addCase(CreateOrder.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true
+      state.message = "Fetching CreateOrder Successfully..."
+    })
+    .addCase(CreateOrder.rejected, (state, action) => {
+      state.loading = false
+      state.success = false
+      state.message = action.payload?.message || "Failed to CreateOrder";
     })
   }
 });
