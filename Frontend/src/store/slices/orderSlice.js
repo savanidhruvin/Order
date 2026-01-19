@@ -78,14 +78,42 @@ export const CreateOrder = createAsyncThunk(
 
 export const CreateOrderCheck = createAsyncThunk(
   "admin/CreateOrderCheck",
-  async ({values , subTotals}, { rejectWithValue }) => {
+  async ({pincode , weight}, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("Token"); 
 
       const response = await axios.post(
         `${BaseUrl}/checkAvailbility`,
         {
-          
+          deliveryPincode:pincode,
+          weight:weight
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
+
+export const CreateManShip = createAsyncThunk(
+  "admin/CreateManShip",
+  async ({orderId , id}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
+
+      const response = await axios.post(
+        `${BaseUrl}/mannualShipment/${orderId}`,
+        {
+          courierId:id
         },
         {
           headers: {
@@ -163,6 +191,21 @@ const orderSlice = createSlice({
       state.loading = false
       state.success = false
       state.message = action.payload?.message || "Failed to Create OrderCheck";
+    })
+
+    .addCase(CreateManShip.pending, (state, action) => {
+      state.loading = true;
+      state.message = "Fetching Create ManShip..."
+    })
+    .addCase(CreateManShip.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true
+      state.message = "Fetching Create ManShip Successfully..."
+    })
+    .addCase(CreateManShip.rejected, (state, action) => {
+      state.loading = false
+      state.success = false
+      state.message = action.payload?.message || "Failed to Create ManShip";
     })
   }
 });

@@ -7,7 +7,8 @@ import img from './Img/com.png'
 import { Fragment } from "react";
 import { FaTrash } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
-import { GetAllOrder } from '../store/slices/orderSlice';
+import { CreateManShip, CreateOrderCheck, GetAllOrder } from '../store/slices/orderSlice';
+import { Navigate, useNavigate } from 'react-router-dom';
 
 
 const Order = () => {
@@ -17,6 +18,9 @@ const Order = () => {
   const dropdownRef = useRef(null);
   const dispatch = useDispatch()
   const orderMap = useSelector(state => state?.orders?.orders.data)
+  const navigate = useNavigate()
+  const [check, setCheck] = useState({})
+  const [orderData, setOrderData] = useState("")
 
   useEffect(()=>{
      dispatch(GetAllOrder())
@@ -33,25 +37,56 @@ const Order = () => {
   }, []);
 
   function formatDate(dateStr) {
-    const date = new Date(dateStr?.replace(" ", "T")); 
-    return date?.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "short",
-      year: "numeric"
-    });
+    if (!dateStr) return "-";
+  
+    // "19 Jan 2026, 10:02 AM"
+    const [datePart] = dateStr.split(","); // "19 Jan 2026"
+  
+    return datePart;
   }
   
+  
   const ShipManage = (ele) => {
-      console.log("OKOKOKO" , ele);
-      
-  }
+    const pincode = ele?.customer_pincode;
+    const weight = ele?.shipments?.[0]?.weight; 
+    setOrderData(ele) 
+
+    console.log("OREDERRR" , ele);
+    
+  
+    dispatch(CreateOrderCheck({ pincode, weight }))
+      .then((value) => {
+        console.log("Response:", value);
+        setCheck(value?.payload?.data)
+      })
+      .catch((error) => {
+        console.log("Error:", error);
+      });
+  };
+  
+  const handleManShip = async (id) => {
+    try {
+      const orderId = orderData?.channel_order_id;  
+      await dispatch(CreateManShip({ orderId, id })).unwrap();
+      setOff(false)
+  
+    } catch (error) {
+      alert(
+        error?.error ||
+        error?.message ||
+        "Something went wrong"
+      );
+    }
+  };
+  
+  
 
   return (
     <div>
        <div className='container ms:px-10 px-5 mx-auto'>
            <div className='flex justify-between my-2'>
              <h1 className='text-3xl font-bold'>Orders</h1>
-             <button className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button>
+             <button onClick={()=> navigate("addorder")} className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button>
            </div>
            <div className='mt-5'>
            <div className="relative overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
@@ -81,12 +116,12 @@ const Order = () => {
                            </td>
                    
                            <td className="px-6 py-4">
-                             <div className="font-medium text-gray-900">{ele?.shippingInfo?.firstName} {ele?.shippingInfo?.lastName}</div>
-                             <div className="text-xs text-gray-500">{ele?.shippingInfo?.email}</div>
+                             <div className="font-medium text-gray-900">{ele?.customer_name}</div>
+                             <div className="text-xs text-gray-500">{ele?.customer_email}</div>
                            </td>
                    
                            <td className="px-6 py-4">
-                              {ele?.items?.map((ele)=>{
+                              {ele?.products?.map((ele)=>{
                                  return (
                                      <div key={ele?._id}>{ele?.name} </div>
                                  )
@@ -94,19 +129,19 @@ const Order = () => {
                            </td>
                    
                            <td className="px-6 py-4">
-                             {ele?.dimension?.weight}kg • Box
+                             {ele?.others?.weight}kg • Box
                            </td>
                    
                            <td className="px-6 py-4 font-semibold text-green-600">
-                             ₹2,999
+                             ₹{ele?.total}
                            </td>
                    
                            <td className="px-6 py-4">
-                             Ahmedabad, Gujarat
+                              {ele?.pickup_address_detail?.city || ele?.pickup_address_detail?.state ? (ele?.pickup_address_detail?.city, ele?.pickup_address_detail?.state) : ("-")}
                            </td>
                    
                            <td className="px-6 py-4">
-                             <span className="px-3 py-1 text-xs rounded-full bg-red-500 text-white font-medium">
+                             <span className={`px-3 ${ele.status === "NEW" ? "bg-blue-500 text-white" : ""} ${ele.status === "RETURN PENDING" ? "bg-gray-500 text-white" : ""} ${ele.status === "SUCCESS" ? "bg-green-500 text-white" : ""} ${ele.status === "RETURN CANCELLED" ? "bg-red-500 text-white" : ""}  py-1 text-xs rounded-full  font-medium`}>
                                {ele?.status}
                              </span>
                            </td>
@@ -116,7 +151,7 @@ const Order = () => {
                                  <button onClick={()=> {setOff(true); ShipManage(ele)}} className="px-2 py-1 bg-purple-500 text-white font-[500] rounded whitespace-nowrap text-sm mr-3 hover:bg-purple-600 transition-colors duration-200">
                                   Ship Now
                                  </button>
-                                 <div className="relative inline-block" ref={dropdownRef}>
+                                 {/* <div className="relative inline-block" ref={dropdownRef}>
                                   <button
                                     onClick={() => setOpen(!open)}
                                     className="p-2 rounded-full hover:bg-gray-100 transition"
@@ -137,7 +172,7 @@ const Order = () => {
                             
                                     </div>
                                    )}
-                                 </div>
+                                 </div> */}
                                </div>
                            </td>
                         </tr>
@@ -149,7 +184,7 @@ const Order = () => {
              </table>
            </div>
               <Transition show={off} as={Fragment}>
-                <Dialog as="div" className="relative z-10" onClose={setOff}>
+                <Dialog as="div" className="relative z-[100]" onClose={setOff}>
                   
                   <Transition.Child
                     as={Fragment}
@@ -192,23 +227,23 @@ const Order = () => {
                                               <h3 className="font-[500] text-[18px]">Order Details</h3>
                                               <div className='mt-4'>
                                                  <p className='text-[12px] text-muted text-[#888] font-[500]'>Pickup From</p>
-                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2 border-black border-dashed inline'>110076, Delhi</p>
+                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2 border-black border-dashed inline'>{orderData?.pickup_address_detail?.pin_code || orderData?.pickup_address_detail?.state ? (orderData?.pickup_address_detail?.pin_code , orderData?.pickup_address_detail?.state) : ("-")} </p>
                                               </div>
                                               <div className='mt-4'>
                                                  <p className='text-[12px] text-muted text-[#888] font-[500]'>Deliver To</p>
-                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2 border-black border-dashed inline'>395011, Gujarat</p>
+                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2 border-black border-dashed inline'>{orderData?.customer_pincode || orderData?.customer_state ? (orderData?.customer_pincode, orderData?.customer_state) : ("-") } </p>
                                               </div>
                                               <div className='mt-4'>
                                                  <p className='text-[12px] text-muted text-[#888] font-[500]'>Order Value</p>
-                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2  inline'>₹ 1998.00</p>
+                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2  inline'>₹ {orderData?.total || "-"}</p>
                                               </div>
                                               <div className='mt-4'>
                                                  <p className='text-[12px] text-muted text-[#888] font-[500]'>Payment Mode</p>
-                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2  inline'>Prepaid</p>
+                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2  inline'>{orderData?.payment_method || "-"}</p>
                                               </div>
                                               <div className='mt-4'>
                                                  <p className='text-[12px] text-muted text-[#888] font-[500]'>Applicable Weight (in Kg)</p>
-                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2 inline'>1 Kg</p>
+                                                 <p className='text-[12px] text-muted  font-[500] mt-1 border-b-2 inline'>{orderData?.shipments?.[0]?.weight || "-"} Kg</p>
                                               </div>
                                            </div>
                                         </div>
@@ -235,46 +270,50 @@ const Order = () => {
                                                
                                                    <tbody className="divide-y divide-gray-200">
                                                
-                                                     <tr className="hover:bg-gray-50 transition border border-purple-500">
-                                                       <td className="px-6 py-4 whitespace-nowrap">
-                                                         <div className='flex items-center'>
-                                                           <img src={img} alt="" className='w-12 me-2' />
-                                                           <div>
-                                                             <div className="font-medium text-gray-900">#ORD-1023</div>
-                                                             <div className="text-xs text-gray-500">12 Jan 2026</div>
-                                                           </div>
-                                                         </div>
-                                                       </td>
-                                               
-                                                       <td className="px-6 py-4">
-                                                          4.8
-                                                       </td>
-                                               
-                                                       <td className="px-6 py-4">
-                                                         Tomorrow
-                                                       </td>
-                                               
-                                                       <td className="px-6 py-4">
-                                                         Jan 15, 2026
-                                                       </td>
-                                               
-                                                       <td className="px-6 py-4 font-semibold text-green-600">
-                                                         1 Kg
-                                                       </td>
-                                               
-                                                       <td className="px-6 py-4">
-                                                          <div className='text-[16px] font-bold'>₹87.00</div>
-                                                       </td>
-                                               
-                                               
-                                                       <td className="px-6 py-4 text-center">
-                                                           <div className='flex items-center'>
-                                                             <button onClick={()=> setOff(true)} className="px-2 py-1 bg-purple-500 text-white font-[500] whitespace-nowrap rounded text-sm mr-3">
-                                                              Ship Now
-                                                             </button>
-                                                           </div>
-                                                       </td>
-                                                     </tr>
+                                                     {check?.available_courier_companies?.map((ele)=>{
+                                                        return (
+                                                          <tr className="hover:bg-gray-50 transition">
+                                                             <td className="px-6 py-4 whitespace-nowrap">
+                                                               <div className='flex items-center'>
+                                                                 <img src={img} alt="" className='w-12 me-2' />
+                                                                 <div>
+                                                                   <div className="font-medium text-gray-900">{ele?.courier_name }</div>
+                                                                   <div className="text-xs text-gray-500">{ele?.id}</div>
+                                                                 </div>
+                                                               </div>
+                                                             </td>
+                                                     
+                                                             <td className="px-6 py-4">
+                                                                {ele?.rating}
+                                                             </td>
+                                                     
+                                                             <td className="px-6 py-4">
+                                                               Tomorrow
+                                                             </td>
+                                                     
+                                                             <td className="px-6 py-4">
+                                                               {ele?.etd}
+                                                             </td>
+                                                     
+                                                             <td className="px-6 py-4 font-semibold text-green-600">
+                                                               {ele?.charge_weight} Kg
+                                                             </td>
+                                                     
+                                                             <td className="px-6 py-4">
+                                                                <div className='text-[16px] font-bold'>₹{ele?.rate}</div>
+                                                             </td>
+                                                     
+                                                     
+                                                             <td className="px-6 py-4 text-center">
+                                                                 <div className='flex items-center'>
+                                                                   <button onClick={()=> {setOff(true); handleManShip(ele?.courier_company_id)}} className="px-2 py-1 bg-purple-500 text-white font-[500] whitespace-nowrap rounded text-sm mr-3">
+                                                                    Ship Now
+                                                                   </button>
+                                                                 </div>
+                                                             </td>
+                                                          </tr>
+                                                        )
+                                                     })}
                                                
                                                    </tbody>
                                                  </table>

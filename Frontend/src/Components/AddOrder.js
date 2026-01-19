@@ -20,7 +20,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { GetPickupAddresses } from '../store/slices/pickupaddressSlice';
 import { useFormik } from 'formik';
 import { OrderSchema } from '../Schema';
-import { CreateOrder } from '../store/slices/orderSlice';
+import { CreateOrder, GetAllOrder } from '../store/slices/orderSlice';
+import { useNavigate } from 'react-router-dom';
 
 const AddOrder = () => {
   const dispatch = useDispatch();
@@ -36,6 +37,8 @@ const AddOrder = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
   const [primaryAddressId, setPrimaryAddressId] = useState(null);
+  const navigate = useNavigate()
+
 
   const toggleMenu = (id, e) => {
     e && e.stopPropagation();
@@ -183,13 +186,22 @@ const AddOrder = () => {
   };
 
   const AddFormik = useFormik({
-      initialValues: initialValues,
-      validationSchema:OrderSchema,
-      onSubmit : (values , action) => {
-           console.log("OKOKOKO" , values);
-           dispatch(CreateOrder({values , subTotals}))
+    initialValues,
+    validationSchema: OrderSchema,
+    onSubmit: async (values, actions) => {
+      try {
+        await dispatch(CreateOrder({ values, subTotals })).unwrap();
+        alert("Order created successfully");
+        navigate("/")
+        dispatch(GetAllOrder())
+        actions.resetForm();
+  
+      } catch (error) {
+        alert(error?.message || "Order creation failed");
       }
-  })
+    },
+  });
+  
 
   useEffect(() => {
     const totals = calculateTotals(AddFormik.values.products);
@@ -203,7 +215,7 @@ const AddOrder = () => {
   <div className="container ms:px-10 px-5 mx-auto mt-5">
     <div className="flex items-center justify-between gap-2 text-gray-900">
       <h1 className="text-2xl font-bold">Add Order</h1>
-      <button className='px-2 py-1 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>Back</button>
+      <button onClick={()=> navigate("/")} className='px-2 py-1 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>Back</button>
     </div>
     {/* <div className="mt-6 border-b border-gray-200">
       <div className="flex gap-6 text-sm font-medium">
@@ -649,7 +661,7 @@ const AddOrder = () => {
 
         </div>
         <div className="mt-4 sm:mt-6 flex flex-col sm:flex-row gap-3 sm:gap-4">
-          <button className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-gray-500 rounded-md text-xs sm:text-sm font-medium">Ship Now</button>
+          <button onClick={()=> navigate("/")} className="px-4 sm:px-6 py-2 sm:py-3 bg-gray-200 text-gray-500 rounded-md text-xs sm:text-sm font-medium">Cancel</button>
           <button type='submit' className="px-4 sm:px-6 py-2 sm:py-3 bg-white border border-purple-600 text-purple-600 rounded-md text-xs sm:text-sm font-medium">Add Order</button>
         </div>
       </div>
