@@ -4,6 +4,7 @@ import Order from "./Components/Order";
 import AddOrder from "./Components/AddOrder";
 import AddOrder2 from "./Components/AddOrder2";
 import Layout from "./Components/Layout";
+import ReturnOrder from "./Components/ReturnOrder";
 
 const App = () => {
   return (
@@ -12,6 +13,7 @@ const App = () => {
         <Route path="/" element={<Layout/>} >
            <Route index element={<Order />} />
            <Route path="/addorder" element={<AddOrder />} />
+           <Route path="/returnorder" element={<ReturnOrder />} />
         </Route>
       </Routes>
     </BrowserRouter>

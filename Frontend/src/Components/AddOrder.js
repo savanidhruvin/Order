@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react'
+import React, { useState, useEffect, Fragment, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { FaLessThan } from "react-icons/fa6";
 import { MdOutlineEdit } from "react-icons/md";
@@ -39,6 +39,7 @@ const AddOrder = () => {
   const [primaryAddressId, setPrimaryAddressId] = useState(null);
   const navigate = useNavigate()
 
+  const addressesRef = useRef(null);
 
   const toggleMenu = (id, e) => {
     e && e.stopPropagation();
@@ -54,6 +55,19 @@ const AddOrder = () => {
     setOpenMenuId(nextId);
     setMenuPosition(nextId ? { top: rect.bottom, left: rect.left, width: rect.width } : null);
   };
+
+  // Close the open menu when clicking anywhere outside the menu/button
+  useEffect(() => {
+    const handleDocumentClick = () => {
+      if (openMenuId !== null) {
+        setOpenMenuId(null);
+        setMenuPosition(null);
+      }
+    };
+
+    document.addEventListener('click', handleDocumentClick);
+    return () => document.removeEventListener('click', handleDocumentClick);
+  }, [openMenuId]);
 
   const markAsPrimary = (address) => {
     setPrimaryAddressId(address.id);
@@ -229,12 +243,11 @@ const AddOrder = () => {
         <div className="flex items-center justify-between">
           <h3 className="font-semibold text-xs sm:text-sm">Pickup Address</h3>
           <div className="flex items-center gap-2 sm:gap-4">
-            <button onClick={() => setOpenEditModal(true)} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm sm:text-base"><MdOutlineEdit /></button>
             <button onClick={() => setOpenModal(true)} className="w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-sm sm:text-base"><LuPlus /></button>
           </div>
         </div>
 
-        <div className="mt-4 border rounded-md px-4 py-4 bg-white">
+        <div ref={addressesRef} className="mt-4 border rounded-md px-4 py-4 bg-white relative">
           {loading ? (
             <span className="text-sm font-medium text-gray-500">Loading...</span>
           ) : pickupAddresses && pickupAddresses.length > 0 ? (
@@ -263,8 +276,22 @@ const AddOrder = () => {
                   {/* Dropdown menu rendered to body to avoid expanding scroll container */}
                   {openMenuId === p.id && menuPosition && createPortal(
                     <div
-                      style={{ top: menuPosition.top + window.scrollY + 8, left: menuPosition.left + window.scrollX - 192 + menuPosition.width, width: 192 }}
-                      className="fixed bg-white border rounded-lg shadow-lg z-50"
+                      style={
+                        addressesRef.current
+                          ? {
+                              position: 'absolute',
+                              top: menuPosition.top - addressesRef.current.getBoundingClientRect().top + addressesRef.current.scrollTop + 8,
+                              left: menuPosition.left - addressesRef.current.getBoundingClientRect().left + addressesRef.current.scrollLeft - 192 + menuPosition.width,
+                              width: 192
+                            }
+                          : {
+                              position: 'fixed',
+                              top: menuPosition.top + window.scrollY + 8,
+                              left: menuPosition.left + window.scrollX - 192 + menuPosition.width,
+                              width: 192
+                            }
+                      }
+                      className={`${addressesRef.current ? '' : 'fixed'} bg-white border rounded-lg shadow-lg z-50`}
                       onClick={(e) => e.stopPropagation()}
                     >
                       <button
@@ -277,7 +304,7 @@ const AddOrder = () => {
                         Mark as Primary Address
                       </button>
                     </div>,
-                    document.body
+                    addressesRef.current || document.body
                   )}
 
                   <p className="text-sm font-semibold text-gray-900 leading-snug">
