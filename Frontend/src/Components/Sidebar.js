@@ -15,7 +15,7 @@ const Sidebar = ({open , setOpen}) => {
   const menu = [
     { name: "Order", icon: <FiHome />, path: "/" },
     { name: "Add Order", icon: <FiShoppingBag />, path: "/addorder" },
-    { name: "Return Order", icon: <FiUsers />, path: "/customers" },
+    { name: "Return Order", icon: <FiUsers />, path: "/returnorder" },
     { name: "Settings", icon: <FiSettings />, path: "/settings" },
   ];
 
