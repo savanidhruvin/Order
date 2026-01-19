@@ -1,4 +1,5 @@
 import React, { useState, useEffect, Fragment } from 'react'
+import { createPortal } from 'react-dom'
 import { FaLessThan } from "react-icons/fa6";
 import { MdOutlineEdit } from "react-icons/md";
 import { LuPlus } from "react-icons/lu";
@@ -29,10 +30,47 @@ const AddOrder = () => {
     dispatch(GetPickupAddresses());
   }, [dispatch]);
 
-  
-  
   const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
+
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [menuPosition, setMenuPosition] = useState(null);
+  const [primaryAddressId, setPrimaryAddressId] = useState(null);
+
+  const toggleMenu = (id, e) => {
+    e && e.stopPropagation();
+    const btn = e && e.currentTarget;
+    if (!btn) {
+      setOpenMenuId(prev => (prev === id ? null : id));
+      setMenuPosition(null);
+      return;
+    }
+
+    const rect = btn.getBoundingClientRect();
+    const nextId = openMenuId === id ? null : id;
+    setOpenMenuId(nextId);
+    setMenuPosition(nextId ? { top: rect.bottom, left: rect.left, width: rect.width } : null);
+  };
+
+  const markAsPrimary = (address) => {
+    setPrimaryAddressId(address.id);
+    setOpenMenuId(null);
+
+    // Open Shiprocket pickup addresses page and pass address details via query params (best-effort prefill)
+    const params = new URLSearchParams({
+      address: address.address || "",
+      city: address.city || "",
+      state: address.state || "",
+      pincode: address.pin_code ?? address.pincode ?? "",
+      name: address.contact_name || address.name || "",
+      phone: address.mobile || address.phone || ""
+    }).toString();
+
+    const shiprocketUrl = `https://app.shiprocket.in/sellers/settings/company-setup/pickup-addresses?${params}`;
+
+    window.open(shiprocketUrl, "_blank", "noopener,noreferrer");
+  };
+
   const [products, setProducts] = useState([
     {
       id: Date.now(),
@@ -181,17 +219,47 @@ const AddOrder = () => {
             <span className="text-sm font-medium text-gray-500">Loading...</span>
           ) : pickupAddresses && pickupAddresses.length > 0 ? (
             <div
-              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3
-              ${pickupAddresses.length > 3 ? 'max-h-64 overflow-y-auto pr-1' : ''}`}
+              className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5
+              ${pickupAddresses.length > 3 ? 'max-h-96 overflow-y-auto pr-1' : ''}`}
             >
               {pickupAddresses.map((p) => (
                 <div
                   key={p.id}
-                  className="rounded-xl p-4 cursor-pointer transition
-                  bg-white
-                  border border-gray-200
-                  hover:border-purple-500 hover:shadow-md"
+                  className={`relative rounded-xl p-4 cursor-pointer transition
+                  bg-white border
+                  ${primaryAddressId === p.id ? "border-purple-500 ring-1 ring-purple-300" : "border-gray-200"}
+                  hover:border-purple-500 hover:shadow-md`}
                 >
+
+                  {/* 3 dots button */}
+                  <button
+                    onClick={(e) => toggleMenu(p.id, e)}
+                    className="absolute top-2 right-2 w-7 h-7 flex items-center justify-center rounded-full
+                    hover:bg-gray-100 text-gray-500"
+                  >
+                    ⋯
+                  </button>
+
+                  {/* Dropdown menu rendered to body to avoid expanding scroll container */}
+                  {openMenuId === p.id && menuPosition && createPortal(
+                    <div
+                      style={{ top: menuPosition.top + window.scrollY + 8, left: menuPosition.left + window.scrollX - 192 + menuPosition.width, width: 192 }}
+                      className="fixed bg-white border rounded-lg shadow-lg z-50"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          markAsPrimary(p);
+                        }}
+                        className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 rounded-lg"
+                      >
+                        Mark as Primary Address
+                      </button>
+                    </div>,
+                    document.body
+                  )}
+
                   <p className="text-sm font-semibold text-gray-900 leading-snug">
                     {p.address}
                   </p>
