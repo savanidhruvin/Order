@@ -41,6 +41,10 @@ const Order = () => {
     });
   }
   
+  const ShipManage = (ele) => {
+      console.log("OKOKOKO" , ele);
+      
+  }
 
   return (
     <div>
@@ -73,7 +77,7 @@ const Order = () => {
                            <tr key={ele?._id} className="hover:bg-gray-50 transition">
                            <td className="px-6 py-4 whitespace-nowrap">
                              <div className="font-medium text-gray-900">{ele?.orderId}</div>
-                             <div className="text-xs text-gray-500">{formatDate(ele?.order_date)}</div>
+                             <div className="text-xs text-gray-500">{formatDate(ele?.created_at)}</div>
                            </td>
                    
                            <td className="px-6 py-4">
@@ -109,7 +113,7 @@ const Order = () => {
                    
                            <td className="px-6 py-4 text-center">
                                <div className='flex items-center'>
-                                 <button onClick={()=> setOff(true)} className="px-2 py-1 bg-purple-500 text-white font-[500] rounded whitespace-nowrap text-sm mr-3 hover:bg-purple-600 transition-colors duration-200">
+                                 <button onClick={()=> {setOff(true); ShipManage(ele)}} className="px-2 py-1 bg-purple-500 text-white font-[500] rounded whitespace-nowrap text-sm mr-3 hover:bg-purple-600 transition-colors duration-200">
                                   Ship Now
                                  </button>
                                  <div className="relative inline-block" ref={dropdownRef}>

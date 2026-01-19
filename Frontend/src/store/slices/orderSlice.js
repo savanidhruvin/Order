@@ -25,43 +25,83 @@ export const GetAllOrder = createAsyncThunk(
 
 export const CreateOrder = createAsyncThunk(
   "admin/CreateOrder",
-  async (values, { rejectWithValue }) => {
-      try {
- 
-         const items = values.products.map((item) => ({
-            name: item.productName,
-            qty: Number(item.quantity),
-            price: Number(item.unitPrice),
-            discount: Number(item.discount) || 0,
-            tax: Number(item.taxRate) || 0,
-         }));
-          const response = await axios.post(`${BaseUrl}/createOrder`, { 
-              headers: {
-                  Authorization: `Bearer ${token}`
-              } 
-          } ,{
-            items,
-            shippingInfo:{
-              firstName:"",
-              lastName:"",
-              email:"",
-              phone:values,
-              address:values,
-              city: values,
-              state: values,
-              country: values,
-              pincode: values
-            }
-          })
+  async ({values , subTotals}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
 
-          return response.data
-      } catch (error) {
-          return rejectWithValue(
-              error.response?.data || { message: "Unexpected error occurred" }
-          );
-      }
+      const items = values.products.map((item) => ({
+        name: item.productName,
+        qty: Number(item.quantity),
+        price: Number(item.unitPrice),
+        discount: Number(item.discount) || 0,
+        tax: Number(item.taxRate) || 0,
+      }));
+
+      const response = await axios.post(
+        `${BaseUrl}/createOrder`,
+        {
+          items,
+          shippingInfo: {
+            firstName: values.firstName,
+            lastName: values.lastName,
+            email: values.email,
+            phone: values.mobile,
+            address: values.address,
+            city: values.city,
+            state: values.state,
+            pincode: values.pincode,
+            country:values.country
+          },
+          dimension: {
+            length: values.length,
+            breadth: values.breadth,
+            height: values.height,
+            weight: values.deadWeight,
+          },
+          subTotal: subTotals
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
   }
-)
+);
+
+export const CreateOrderCheck = createAsyncThunk(
+  "admin/CreateOrderCheck",
+  async ({values , subTotals}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
+
+      const response = await axios.post(
+        `${BaseUrl}/checkAvailbility`,
+        {
+          
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
 
 const initialState = {
   orders: [],
@@ -108,6 +148,21 @@ const orderSlice = createSlice({
       state.loading = false
       state.success = false
       state.message = action.payload?.message || "Failed to CreateOrder";
+    })
+
+    .addCase(CreateOrderCheck.pending, (state, action) => {
+      state.loading = true;
+      state.message = "Fetching Create OrderCheck..."
+    })
+    .addCase(CreateOrderCheck.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true
+      state.message = "Fetching Create OrderCheck Successfully..."
+    })
+    .addCase(CreateOrderCheck.rejected, (state, action) => {
+      state.loading = false
+      state.success = false
+      state.message = action.payload?.message || "Failed to Create OrderCheck";
     })
   }
 });

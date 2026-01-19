@@ -13,6 +13,10 @@ export const OrderSchema = Yup.object({
   .required("Full name is required")
   .min(3, "Last Name must be at least 3 characters"),
 
+  email: Yup.string()
+    .required("Email is required")
+    .email("Enter a valid email address"),
+
   address: Yup.string()
     .required("Address is required")
     .min(10, "Address must be at least 10 characters"),
@@ -26,6 +30,9 @@ export const OrderSchema = Yup.object({
   city: Yup.string().required("City is required"),
 
   state: Yup.string().required("State is required"),
+
+  country: Yup.string()
+  .required("Country is required"),
 
   products: Yup.array()
     .of(
