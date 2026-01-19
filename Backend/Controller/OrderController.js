@@ -53,7 +53,7 @@ exports.createOrder = async (req, res) => {
 
         // startDate = new Date();
 
-        if (!shippingInfo || !items || !subTotal || !discount || !dimension) {
+        if (!shippingInfo || !items || !subTotal  || !dimension) {
             return res.status(400).json({ success: false, message: "All fields required" });
         }
 
@@ -65,7 +65,8 @@ exports.createOrder = async (req, res) => {
             discount: discount,
             dimension,
         });
-        await createShipping(req, res, order);
+        
+        // await createShipping(req, res, order);
 
         return getSuccessResponse(res, order, "Order created successfully");
     } catch (error) {

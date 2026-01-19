@@ -82,6 +82,9 @@ const AddOrder = () => {
     }
   ]);
 
+  const [subTotals, setSubTotals] = useState(0);
+
+
   const addProduct = () => {
     const products = [...AddFormik.values.products];
   
@@ -150,18 +153,18 @@ const AddOrder = () => {
       total: subTotal, 
     };
   };
-  
-  
 
   const initialValues = {
     mobile: "",
     firstName: "",
     lastName: "",
+    email:"",
     address: "",
     landmark: "",
     pincode: "",
     city: "",
     state: "",
+    country:"",
   
     products: [
       {
@@ -184,9 +187,14 @@ const AddOrder = () => {
       validationSchema:OrderSchema,
       onSubmit : (values , action) => {
            console.log("OKOKOKO" , values);
-           dispatch(CreateOrder(values))
+           dispatch(CreateOrder({values , subTotals}))
       }
   })
+
+  useEffect(() => {
+    const totals = calculateTotals(AddFormik.values.products);
+    setSubTotals(totals.subTotal);
+  }, [AddFormik.values.products]);
   
   const { subTotal, total } = calculateTotals(AddFormik.values.products);
 
@@ -304,6 +312,12 @@ const AddOrder = () => {
             {AddFormik.touched.lastName && AddFormik.errors.lastName && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.lastName} </p>)}
           </div>
 
+          <div>
+            <label className="text-xs text-gray-600">Email</label>  
+            <input name="email" value={AddFormik.values.email} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Email"/>
+            {AddFormik.touched.email && AddFormik.errors.email && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.email} </p>)}
+          </div>
+
           <div className="sm:col-span-2 lg:col-span-1">
             <label className="text-xs text-gray-600">Complete Address</label>
             <input name='address' value={AddFormik.values.address} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Buyer's full address"/>
@@ -332,6 +346,12 @@ const AddOrder = () => {
             <label className="text-xs text-gray-600">State</label>
             <input name='state' value={AddFormik.values.state} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" placeholder="State"/>
             {AddFormik.touched.state && AddFormik.errors.state && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.state} </p>)}
+          </div>
+
+          <div>
+            <label className="text-xs text-gray-600">Country</label>
+            <input name='country' value={AddFormik.values.country} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm bg-gray-50" placeholder="State"/>
+            {AddFormik.touched.country && AddFormik.errors.country && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.country} </p>)}
           </div>
         </div>
 
