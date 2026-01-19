@@ -65,6 +65,7 @@ exports.createOrder = async (req, res) => {
             discount: discount,
             dimension,
         });
+        
         // await createShipping(req, res, order);
 
         return getSuccessResponse(res, order, "Order created successfully");
