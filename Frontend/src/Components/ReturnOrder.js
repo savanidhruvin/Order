@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from 'react-redux';
-import { GetAllReturnOrders, ReturnOrderCheck, ReturnOrderManPart } from "../store/slices/returnorderSlice";
+import { GetAllReturnOrders, ReturnOrder, ReturnOrderCheck, ReturnOrderManPart } from "../store/slices/returnorderSlice";
 import { Dialog, DialogPanel, Transition } from "@headlessui/react";
 import { IoCloseSharp } from "react-icons/io5";
 import { MdWarning } from 'react-icons/md';
 import { Fragment } from "react";
 import img from './Img/com.png'
+import { useFormik } from "formik";
+import { ReturnValidation } from "../Schema";
 
 const OrderReturnPage = () => {
   const dispatch = useDispatch();
@@ -19,6 +21,7 @@ const OrderReturnPage = () => {
   const [newOpen, setNewOpen] = useState(false)
   const [cancelReason, setCancelReason] = useState("")
   const [cancelRemark, setCancelRemark] = useState("")
+  const [orderId, setOrderId] = useState(null)
 
   const cancelReasons = [
     "Customer changed mind",
@@ -32,8 +35,10 @@ const OrderReturnPage = () => {
     dispatch(GetAllReturnOrders());
   }, []);
 
+  // console.log("JJJJJJ" , returnOrders);
+  
+
   const ReturnManage = (ele) => {
-    console.log("ZZZZZZ", ele);
     
     const pincode = ele?.shippingInfo?.pincode;
     const weight = ele?.dimension?.weight; 
@@ -56,14 +61,7 @@ const OrderReturnPage = () => {
     setNewOpen(true);
   };
 
-  const handleCancelSubmit = (e) => {
-    e.preventDefault();
-    // TODO: dispatch cancel action if available. For now, just log and close.
-    console.log('Cancel request for', cancelOrder?._id, cancelReason, cancelRemark);
-    setCancelOpen(false);
-    // Optionally show a toast/alert
-    alert('Cancel request submitted');
-  };
+
 
   const handleManShip = async (id) => {
     try {
@@ -83,6 +81,29 @@ const OrderReturnPage = () => {
     }
     
   };
+
+  const returnVal = {
+      reason:""
+  }
+  const ReturnOrderFormik = useFormik({
+    initialValues: returnVal,
+    validationSchema: ReturnValidation,
+    onSubmit: (values, action) => {
+      const orderID = orderId.replace(/^RET-/, "");
+  
+      dispatch(ReturnOrder({ values, orderID }))
+        .unwrap()
+        .then(() => {
+          alert("Return order submitted successfully");
+          action.resetForm();
+          setNewOpen(false); 
+        })
+        .catch((err) => {
+          alert(err?.message || "Failed to submit return request");
+        });
+    }
+  });
+  
   
   return (
     <div className="container ms:px-6 mx-auto">
@@ -104,25 +125,25 @@ const OrderReturnPage = () => {
             {/* Table Header */}
             <thead className="bg-[#fafafa] border-b border-gray-200">
               <tr>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Return Details
                 </th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Buyer Details
                 </th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Product Details
                 </th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Dimensions
                 </th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Warehouse Address
                 </th>
-                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-left font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Refund Details
                 </th>
-                <th className="px-6 py-4 text-center font-semibold text-gray-600 uppercase">
+                <th className="px-6 py-4 text-center font-semibold text-gray-600 uppercase whitespace-nowrap">
                   Action
                 </th>
               </tr>
@@ -173,7 +194,7 @@ const OrderReturnPage = () => {
                     <td className="px-6 py-4 text-center">
                         <div className="flex items-center justify-center gap-2">
                         <button onClick={()=> {setOff(true); ReturnManage(order)}} className="px-3 py-2 bg-purple-500 text-white font-[500] rounded whitespace-nowrap">Initiate Return</button>
-                        <button onClick={()=> openCancel(order)} className="bg-red-500 px-2 py-2 hover:bg-red-600 rounded text-white whitespace-nowrap hover:underline">Cancel Order</button>
+                        <button onClick={()=> {setOrderId(order?.raw?.channel_order_id); setNewOpen(true)}} className="bg-red-500 px-2 py-2 hover:bg-red-600 rounded text-white whitespace-nowrap hover:underline">Cancel Order</button>
                       </div>
                     </td>
                   </tr>
@@ -361,44 +382,45 @@ const OrderReturnPage = () => {
                         leaveTo="opacity-0 scale-95"
                       >
                         <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all relative">
-                          <button type="button" onClick={() => setNewOpen(false)} className="absolute top-3 right-3 text-gray-500 hover:text-gray-700">
-                            <IoCloseSharp className="text-xl mt-2 mr-2" />
-                          </button>
-                          <div className="flex flex-col items-center gap-4 mt-4">
+                          <div className="flex flex-col items-center gap-4 ">
                             <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center">
                               <MdWarning className="text-red-600 text-3xl" />
                             </div>
                             <Dialog.Title as="h3" className="text-lg font-semibold text-gray-900 text-center">
                               Are you sure you want to cancel this order?
                             </Dialog.Title>
+                            <form onSubmit={ReturnOrderFormik.handleSubmit} className="w-full">
                             <div className="w-full">
                               <label className="sr-only">Reason</label>
                               <textarea
-                                value={cancelReason}
-                                onChange={(e) => setCancelReason(e.target.value)}
+                                name="reason"
+                                value={ReturnOrderFormik.values.reason}
+                                onChange={ReturnOrderFormik.handleChange}
+                                onBlur={ReturnOrderFormik.handleBlur}
                                 placeholder="Enter reason to cancel"
                                 className="w-full border border-gray-200 rounded px-3 py-2 text-sm resize-none h-20"
                               />
+                              {ReturnOrderFormik.touched.reason &&ReturnOrderFormik.errors.reason && (  <p className="text-xs text-red-500 mt-1">    {ReturnOrderFormik.errors.reason}  </p>)}
                             </div>
-                            <p className="text-xs text-gray-400">You can't undo this action.</p>
 
-                            <div className="mt-2 w-full flex justify-between gap-3">
+                            <div className="mt-5 w-full flex justify-center gap-3">
                               <button
                                 type="button"
-                                className="inline-flex justify-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+                                className="w-full sm:w-32 h-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300"
                                 onClick={() => setNewOpen(false)}
                               >
-                                Don't Cancel
+                                Cancel
                               </button>
-                              <form onSubmit={handleCancelSubmit} className="inline">
+                              <div className="inline">
                                 <button
                                   type="submit"
-                                  className="inline-flex justify-center rounded-md bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
+                                  className="w-full sm:w-32 h-10 inline-flex items-center justify-center rounded-md bg-red-500 text-sm font-semibold text-white transition-all duration-200 hover:bg-red-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-400"
                                 >
                                   Yes, Cancel
                                 </button>
-                              </form>
+                              </div>
                             </div>
+                            </form>
                           </div>
                         </Dialog.Panel>
                       </Transition.Child>

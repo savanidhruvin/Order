@@ -384,7 +384,7 @@ const Order = () => {
                </Dialog>
            </Transition>
 
-           <Dialog open={newOpen} onClose={setNewOpen} className="relative z-[100]">
+           {/* <Dialog open={newOpen} onClose={setNewOpen} className="relative z-[100]">
            <DialogBackdrop
           transition
           className="fixed inset-0 bg-gray-900/50 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
@@ -428,7 +428,73 @@ const Order = () => {
             </DialogPanel>
           </div>
         </div>
-      </Dialog>
+      </Dialog> */}
+
+
+      <Transition show={newOpen} as={Fragment}>
+                <Dialog as="div" className="relative z-[99]" onClose={() => setNewOpen(false)}>
+                  <Transition.Child
+                    as={Fragment}
+                    enter="ease-out duration-300"
+                    enterFrom="opacity-0"
+                    enterTo="opacity-100"
+                    leave="ease-in duration-200"
+                    leaveFrom="opacity-100"
+                    leaveTo="opacity-0"
+                  >
+                    <div className="fixed inset-0 bg-black/40" />
+                  </Transition.Child>
+
+                  <div className="fixed inset-0 overflow-y-auto">
+                    <div className="flex min-h-full items-center justify-center p-4 text-center">
+                      <Transition.Child
+                        as={Fragment}
+                        enter="ease-out duration-300"
+                        enterFrom="opacity-0 scale-95"
+                        enterTo="opacity-100 scale-100"
+                        leave="ease-in duration-200"
+                        leaveFrom="opacity-100 scale-100"
+                        leaveTo="opacity-0 scale-95"
+                      >
+                        <DialogPanel
+              transition
+              className="relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+            >
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex justify-center items-center flex-col">
+                    <MdWarning aria-hidden="true" className="size-10 text-red-400" />
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <div className="mt-4">
+                      <p className="text-xl font-medium text-gray-400 ">
+                      Are you sure you want to cancel this order?
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white px-4 pt-4 sm:flex sm:flex-row-reverse items-center justify-center sm:gap-3 sm:px-6 pb-8">
+                 <button
+                   type="button"
+                   onClick={() => handleCancelOrder()}
+                   className="w-full sm:w-32 h-10 inline-flex items-center justify-center rounded-md bg-red-500 text-sm font-semibold text-white transition-all duration-200 hover:bg-red-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                 >
+                   Yes, Cancel
+                 </button>
+               
+                 <button
+                   type="button"
+                   onClick={() => setNewOpen(false)}
+                   className="w-full sm:w-32 h-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300"
+                 >
+                   No
+                 </button>
+               </div>
+            </DialogPanel>
+                      </Transition.Child>
+                    </div>
+                  </div>
+                </Dialog>
+              </Transition>
        </div>
   )
 }

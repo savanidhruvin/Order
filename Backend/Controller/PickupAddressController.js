@@ -36,9 +36,20 @@ exports.addPickupAddress = async (req, res) => {
         return getSuccessResponse(res, response?.data?.address);
 
     } catch (error) {
-        const message = error.response?.data?.message || error.message;
-        return getErrorResponse(res, error?.response?.data?.status_code || 500, message,);
-    }
+        let err = error.response?.data;
+      
+        if (typeof err?.message === "string") {
+          try {
+            err.message = JSON.parse(err.message);
+          } catch (e) {}
+        }
+      
+        return res.status(400).json({
+          success: false,
+          error: err,
+        });
+      }
+      
 
 }
 

@@ -28,6 +28,43 @@ export const GetPickupAddresses = createAsyncThunk(
   }
 );
 
+export const CreatePickAdd = createAsyncThunk(
+  "admin/CreatePickAdd",
+  async (values, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
+
+
+      const response = await axios.post(
+        `${BaseUrl}/addPickupaddress`,
+        {
+          pickup_location:values?.pickup_location,
+          name:values?.name,
+          phone:values?.phone,
+          email:values?.email,
+          address:values?.address,
+          landmark:values?.landmark,
+          city:values?.city,
+          state:values?.state,
+          country:values?.country,
+          pincode:values?.pincode
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
+
 const initialState = {
   pickupAddresses: [],
   loading: false,
@@ -56,6 +93,21 @@ const pickupaddressSlice = createSlice({
         state.loading = false;
         state.success = false;
         state.message = action.payload?.message || 'Failed to fetch pickup addresses.';
+      })
+
+      .addCase(CreatePickAdd.pending, (state) => {
+        state.loading = true;
+        state.message = 'Fetching Create PickAdd...';
+      })
+      .addCase(CreatePickAdd.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.message = 'Fetched Create PickAdd successfully.';
+      })
+      .addCase(CreatePickAdd.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.message = action.payload?.message || 'Failed to fetch Create PickAdd.';
       });
   },
 });

@@ -17,10 +17,9 @@ import { FaBagShopping } from "react-icons/fa6";
 import { HiOutlineLightBulb } from "react-icons/hi";
 
 import { useDispatch, useSelector } from 'react-redux';
-import { GetPickupAddresses } from '../store/slices/pickupaddressSlice';
-import { AddPickupAddress } from '../store/slices/addorderSlice';
+import { CreatePickAdd, GetPickupAddresses } from '../store/slices/pickupaddressSlice';
 import { useFormik } from 'formik';
-import { OrderSchema } from '../Schema';
+import { OrderSchema, PickupValidation } from '../Schema';
 import { CreateOrder, GetAllOrder } from '../store/slices/orderSlice';
 import { useNavigate } from 'react-router-dom';
 
@@ -33,23 +32,6 @@ const AddOrder = () => {
   }, [dispatch]);
 
   const [openModal, setOpenModal] = useState(false);
-  const [openEditModal, setOpenEditModal] = useState(false);
-
-  const [selectedTag, setSelectedTag] = useState("Home");
-  const [addressNickname, setAddressNickname] = useState("");
-  const [pickupForm, setPickupForm] = useState({
-    pickup_location: 'Home',
-    name: '',
-    phone: '',
-    email: '',
-    address: '',
-    landmark: '',
-    city: '',
-    state: '',
-    country: 'India',
-    pincode: ''
-  });
-
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
   const [primaryAddressId, setPrimaryAddressId] = useState(null);
@@ -104,27 +86,6 @@ const AddOrder = () => {
     window.open(shiprocketUrl, "_blank", "noopener,noreferrer");
   };
 
-  const handlePickupChange = (e) => {
-    const { name, value } = e.target;
-    setPickupForm(prev => ({ ...prev, [name]: value }));
-  };
-
-  const handleSavePickup = async () => {
-    try {
-      // map selectedTag to pickup_location, if Other use addressNickname
-      const payload = { ...pickupForm, pickup_location: selectedTag === 'Other' ? addressNickname || 'Other' : selectedTag };
-    
-      await dispatch(AddPickupAddress(payload)).unwrap();
-
-      alert('Pickup address added successfully');
-      setOpenModal(false);
-      dispatch(GetPickupAddresses());
-
-    } catch (err) {
-      alert(err.message); // ✅ now always works
-    }
-  };
-
   const [products, setProducts] = useState([
     {
       id: Date.now(),
@@ -164,7 +125,6 @@ const AddOrder = () => {
     AddFormik.setFieldValue("products", products);
   };
   
-
   const updateProduct = (id, field, value) => {
     setProducts(products.map(product => 
       product.id === id ? { ...product, [field]: value } : product
@@ -253,13 +213,50 @@ const AddOrder = () => {
     },
   });
   
-
   useEffect(() => {
     const totals = calculateTotals(AddFormik.values.products);
     setSubTotals(totals.subTotal);
   }, [AddFormik.values.products]);
   
   const { subTotal, total } = calculateTotals(AddFormik.values.products);
+
+  const PikupVal = {
+    pickup_location:"",
+    name:"",
+    phone:"",
+    email:"",
+    address:"",
+    landmark:"",
+    city:"",
+    state:"",
+    country:"",
+    pincode:""
+  }
+
+  const PikupAddFormik = useFormik({
+    initialValues: PikupVal,
+    validationSchema: PickupValidation,
+    onSubmit: (values, action) => {
+      dispatch(CreatePickAdd(values))
+        .unwrap()
+        .then(() => {
+          alert("Pickup address added successfully");
+          dispatch(GetPickupAddresses())
+        })
+        .catch(err => {
+          const msg =
+            err?.error?.message?.address?.[0] ||
+            err?.error?.message?.pickup_location?.[0] ||
+            err?.error?.message ||
+            "Something went wrong";
+    
+          alert(msg);
+        });
+    }
+    
+  });
+  
+
 
   return (
     <>
@@ -847,13 +844,11 @@ const AddOrder = () => {
           <div className="pointer-events-none fixed inset-y-0 right-0 flex max-w-full">
             <Transition.Child as={Fragment} enter="transform transition ease-in-out duration-500" enterFrom="translate-x-full" enterTo="translate-x-0" leave="transform transition ease-in-out duration-500" leaveFrom="translate-x-0" leaveTo="translate-x-full">
               <DialogPanel className="pointer-events-auto relative w-full max-w-7xl bg-white shadow-xl flex flex-col">
-                <div className="overflow-auto">
+                <form onSubmit={PikupAddFormik.handleSubmit}  className="overflow-auto">
                   {/* Header */}
                   <div className="flex justify-between items-center px-6 py-4 border-b">
                     <DialogTitle className="text-lg font-semibold">Add Pickup Location</DialogTitle>
-                    <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
-                      &times;
-                    </button>
+                    <IoCloseSharp className='text-[22px] cursor-pointer' onClick={()=> setOpenModal(false)} />
                   </div>
                   <div className="p-6 space-y-8 max-w-7xl mx-auto">
                     {/* Address Details */}      
@@ -861,37 +856,22 @@ const AddOrder = () => {
                     <section className="space-y-6">
                       <h3 className="text-sm font-semibold">Address Details</h3>
 
-                      {selectedTag === "Other" && (
                         <div className="mt-4">
                           <label className="text-xs font-medium text-gray-600">
                             Address Nickname
                           </label>
                           <input
                             type="text"
-                            value={addressNickname}
-                            onChange={(e) => setAddressNickname(e.target.value)}
                             placeholder="Address Nickname"
                             className="mt-1 w-full border rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                            name="pickup_location"
+                            value={PikupAddFormik.values.pickup_location}
+                            onChange={PikupAddFormik.handleChange}
+                            onBlur={PikupAddFormik.handleBlur}
                           />
+                          {PikupAddFormik.touched.pickup_location &&PikupAddFormik.errors.pickup_location && ( <p className="text-xs text-red-500 mt-1">   {PikupAddFormik.errors.pickup_location} </p>)}
                         </div>
-                      )}
 
-                      <div className="flex flex-wrap gap-2">
-                        {["Home", "Work", "Warehouse", "Other"].map((tag) => (
-                          <button
-                            key={tag}
-                            onClick={() => setSelectedTag(tag)}
-                            className={`px-4 py-1.5 text-sm rounded-full border transition
-                              ${
-                                selectedTag === tag
-                                  ? "border-purple-500 bg-purple-50 text-purple-600"
-                                  : "border-gray-300 text-gray-600 hover:border-purple-400"
-                              }`}
-                          >
-                            {tag}
-                          </button>
-                        ))}
-                      </div>
 
                       {/* Form Container */}
                       <div className="bg-gray-50 p-5 rounded-lg space-y-5">
@@ -901,11 +881,13 @@ const AddOrder = () => {
                           <label className="text-xs font-medium">Complete Address</label>
                           <input
                             name="address"
-                            value={pickupForm.address}
-                            onChange={handlePickupChange}
+                            value={PikupAddFormik.values.address}
+                            onChange={PikupAddFormik.handleChange}
+                            onBlur={PikupAddFormik.handleBlur}
                             className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             placeholder="Enter full address"
                           />
+                          {PikupAddFormik.touched.address && PikupAddFormik.errors.address && ( <p className="text-xs text-red-500 mt-1">   {PikupAddFormik.errors.address} </p>)}
                         </div>
 
                         {/* Landmark */}
@@ -913,8 +895,9 @@ const AddOrder = () => {
                           <label className="text-xs font-medium">Landmark</label>
                           <input
                             name="landmark"
-                            value={pickupForm.landmark}
-                            onChange={handlePickupChange}
+                            value={PikupAddFormik.values.landmark}
+                            onChange={PikupAddFormik.handleChange}
+                            onBlur={PikupAddFormik.handleBlur}
                             className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             placeholder="Nearby landmark"
                           />
@@ -926,30 +909,36 @@ const AddOrder = () => {
                             <label className="text-xs font-medium">Pincode</label>
                             <input
                               name="pincode"
-                              value={pickupForm.pincode}
-                              onChange={handlePickupChange}
+                              value={PikupAddFormik.values.pincode}
+                              onChange={PikupAddFormik.handleChange}
+                              onBlur={PikupAddFormik.handleBlur}
                               className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             />
+                            {PikupAddFormik.touched.pincode && PikupAddFormik.errors.pincode && (<p className="text-xs text-red-500">{PikupAddFormik.errors.pincode}</p>)}
                           </div>
 
                           <div>
                             <label className="text-xs font-medium">City</label>
                             <input
                               name="city"
-                              value={pickupForm.city}
-                              onChange={handlePickupChange}
+                              value={PikupAddFormik.values.city}
+                              onChange={PikupAddFormik.handleChange}
+                              onBlur={PikupAddFormik.handleBlur}
                               className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             />
+                             {PikupAddFormik.touched.city && PikupAddFormik.errors.city && (<p className="text-xs text-red-500">{PikupAddFormik.errors.city}</p>)}
                           </div>
 
                           <div>
                             <label className="text-xs font-medium">State</label>
                             <input
                               name="state"
-                              value={pickupForm.state}
-                              onChange={handlePickupChange}
+                              value={PikupAddFormik.values.state}
+                              onChange={PikupAddFormik.handleChange}
+                              onBlur={PikupAddFormik.handleBlur}
                               className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             />
+                          {PikupAddFormik.touched.state && PikupAddFormik.errors.state && (<p className="text-xs text-red-500">{PikupAddFormik.errors.state}</p>)}
                           </div>
                         </div>
 
@@ -958,10 +947,12 @@ const AddOrder = () => {
                           <label className="text-xs font-medium">Country</label>
                           <input
                             name="country"
-                            value={pickupForm.country}
-                            onChange={handlePickupChange}
+                            value={PikupAddFormik.values.country}
+                            onChange={PikupAddFormik.handleChange}
+                            onBlur={PikupAddFormik.handleBlur}
                             className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                           />
+                          {PikupAddFormik.touched.country && PikupAddFormik.errors.country && (<p className="text-xs text-red-500">{PikupAddFormik.errors.country}</p>)}
                         </div>
 
                         {/* Contact Details */}
@@ -970,33 +961,36 @@ const AddOrder = () => {
                             <label className="text-xs font-medium">Name</label>
                             <input
                               name="name"
-                              value={pickupForm.name}
-                              onChange={handlePickupChange}
+                              value={PikupAddFormik.values.name}
+                              onChange={PikupAddFormik.handleChange}
+                              onBlur={PikupAddFormik.handleBlur}
                               className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             />
+                            {PikupAddFormik.touched.name && PikupAddFormik.errors.name && (<p className="text-xs text-red-500">{PikupAddFormik.errors.name}</p>)}
                           </div>
 
                           <div>
                             <label className="text-xs font-medium">Contact Number</label>
                             <input
                               name="phone"
-                              value={pickupForm.phone}
-                              onChange={handlePickupChange}
+                              value={PikupAddFormik.values.phone}
+                              onChange={PikupAddFormik.handleChange}
+                              onBlur={PikupAddFormik.handleBlur}
                               className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             />
-                            <span className="text-xs text-green-600 font-medium">
-                              ✔ Verified
-                            </span>
+                             {PikupAddFormik.touched.phone && PikupAddFormik.errors.phone && (<p className="text-xs text-red-500">{PikupAddFormik.errors.phone}</p>)}
                           </div>
 
                           <div>
                             <label className="text-xs font-medium">Email Address</label>
                             <input
                               name="email"
-                              value={pickupForm.email}
-                              onChange={handlePickupChange}
+                              value={PikupAddFormik.values.email}
+                              onChange={PikupAddFormik.handleChange}
+                              onBlur={PikupAddFormik.handleBlur}
                               className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
                             />
+                             {PikupAddFormik.touched.email && PikupAddFormik.errors.email && (<p className="text-xs text-red-500">{PikupAddFormik.errors.email}</p>)}
                           </div>
                         </div>
 
@@ -1005,11 +999,11 @@ const AddOrder = () => {
 
                     {/* Footer */}
                     <div className="flex justify-end gap-4 pt-6">
-                      <button onClick={() => setOpenModal(false)} className="px-6 py-2 border border-purple-500 text-black rounded-md text-sm">Cancel</button>
-                      <button onClick={handleSavePickup} className="px-2 py-1 bg-purple-500 text-white font-[500] whitespace-nowrap rounded text-sm mr-3">Verify and Save Address</button>
+                      <button type='button' className="px-6 py-2 border border-purple-500 text-purple-500 rounded-md text-sm">Cancel</button>
+                      <button type='submit' className="px-2 py-1 bg-purple-500 text-white font-[500] whitespace-nowrap rounded text-sm mr-3">Save Address</button>
                     </div>
                   </div>
-                </div>
+                </form>
               </DialogPanel>
             </Transition.Child>
           </div>

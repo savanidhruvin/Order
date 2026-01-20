@@ -82,3 +82,44 @@ export const OrderSchema = Yup.object({
     .required("Height is required")
     .min(0.5, "Minimum height is 0.5 cm"),
 });
+
+export const PickupValidation = Yup.object({
+  pickup_location: Yup.string()
+    .max(36, "Max 36 characters allowed")
+    .required("Address nickname is required"),
+
+    address: Yup.string()
+    .matches(
+      /^[0-9]+\s*,\s*[A-Za-z\s]+$/,
+      "Address must be like: 110 , Home Street"
+    )
+    .required("Complete address is required"),
+  
+
+  landmark: Yup.string(),
+
+  pincode: Yup.string()
+    .matches(/^[0-9]{6}$/, "Invalid pincode")
+    .required("Pincode is required"),
+
+  city: Yup.string().required("City is required"),
+  state: Yup.string().required("State is required"),
+  country: Yup.string().required("Country is required"),
+
+  name: Yup.string().required("Name is required"),
+
+  phone: Yup.string()
+    .matches(/^[0-9]{10}$/, "Invalid phone number")
+    .required("Phone number is required"),
+
+  email: Yup.string()
+    .email("Invalid email")
+    .required("Email is required"),
+});
+
+export const ReturnValidation = Yup.object({
+  reason: Yup.string()
+    .min(5, "Reason must be at least 5 characters")
+    .required("Return reason is required"),
+});
+

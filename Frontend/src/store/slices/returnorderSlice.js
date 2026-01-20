@@ -134,6 +134,33 @@ export const ReturnOrderManPart = createAsyncThunk(
   }
 );
 
+export const ReturnOrder = createAsyncThunk(
+  "admin/ReturnOrder",
+  async ({values , orderID}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
+
+      const response = await axios.post(
+        `${BaseUrl}/returnOrder/${orderID}`,
+        {
+          reason:values?.reason
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
+
 const initialState = {
   returnOrders: [],
   loading: false,
@@ -192,6 +219,21 @@ const returnOrderSlice = createSlice({
         state.loading = false;
         state.success = false;
         state.message = action.payload?.message || "Failed to fetch Return OrderManPart";
+      })
+
+      .addCase(ReturnOrder.pending, (state) => {
+        state.loading = true;
+        state.message = "Fetching Return Order...";
+      })
+      .addCase(ReturnOrder.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.message = "Fetched Return Order successfully.";
+      })
+      .addCase(ReturnOrder.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.message = action.payload?.message || "Failed to fetch Return Order";
       })
   }
 });
