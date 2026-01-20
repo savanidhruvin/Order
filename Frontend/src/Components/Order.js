@@ -1,23 +1,29 @@
-import React, { useEffect, useRef, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { HiDotsHorizontal } from "react-icons/hi";
 import { Dialog, DialogBackdrop, DialogPanel, DialogTitle, Transition, TransitionChild } from "@headlessui/react";
 import { IoCloseSharp } from "react-icons/io5";
-import { MdModeEdit } from "react-icons/md";
+import { MdModeEdit, MdWarning } from "react-icons/md";
 import img from './Img/com.png'
 import { Fragment } from "react";
 import { FaTrash } from 'react-icons/fa6';
 import { useDispatch, useSelector } from 'react-redux';
-import { CreateManShip, CreateOrderCheck, GetAllOrder } from '../store/slices/orderSlice';
+import { CancelOrder, CreateManShip, CreateOrderCheck, GetAllOrder } from '../store/slices/orderSlice';
 import { Navigate, useNavigate } from 'react-router-dom';
+import axios from 'axios';
+const BaseUrl = "http://localhost:5000/api"
 
 
 const Order = () => {
 
   const [open, setOpen] = useState(false);
   const [off, setOff] = useState(false)
+  const [newOpen, setNewOpen] = useState(false)
   const dropdownRef = useRef(null);
   const dispatch = useDispatch()
   const orderMap = useSelector(state => state?.orders?.orders.data)
+  const loading = useSelector((state) => state.orders.loading);
+  const [orderId, setOrderId] = useState(null)
+
   const navigate = useNavigate()
   const [check, setCheck] = useState({})
   const [orderData, setOrderData] = useState("")
@@ -26,6 +32,23 @@ const Order = () => {
      dispatch(GetAllOrder())
   },[])
 
+  useLayoutEffect(() => {
+    const handleToken = async () => {
+      try {
+        const response = await axios.get(`${BaseUrl}/getToken`);
+          const token = response?.data?.data;      
+        if (token) {
+          localStorage.setItem("Token", token);
+        }
+  
+      } catch (error) {
+        console.error("Token fetch failed:", error);
+      }
+    };
+  
+    handleToken();
+  }, []);
+  
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -44,6 +67,8 @@ const Order = () => {
   
     return datePart;
   }
+  
+  console.log("KOKOKOOK" , orderMap);
   
   
   const ShipManage = (ele) => {
@@ -81,6 +106,17 @@ const Order = () => {
     }
   };
   
+  const handleCancelOrder = async () => {
+    try {
+      await dispatch(CancelOrder(orderId)).unwrap();
+      alert("Order Cancelled Successfully");
+      setNewOpen(false)
+      dispatch(GetAllOrder())
+    } catch (error) {
+      alert("Failed to cancel order");
+      console.error(error);
+    }
+  };
   
 
   return (
@@ -89,7 +125,7 @@ const Order = () => {
              <h1 className='text-3xl font-bold'>Orders</h1>
              {/* <button onClick={()=> navigate("addorder")} className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button> */}
            </div>
-           <div className="rounded-xl mt-5 border border-gray-200 shadow-sm bg-white overflow-x-auto">
+           <div className="rounded-xl ds_wraper mt-5 border border-gray-200 shadow-sm bg-white ">
              <table className="w-full ds_manage text-sm text-left text-gray-600 ">
            
                <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10 shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
@@ -105,6 +141,12 @@ const Order = () => {
                  </tr>
                </thead>
            
+                {loading ? (<tr>
+                   <td colSpan="7" className="text-center py-12 text-gray-400">
+                     Loading...
+                   </td>
+                 </tr>
+              ) : (
                <tbody className="divide-y divide-gray-200">
 
                   {orderMap?.map((ele)=>{
@@ -141,7 +183,7 @@ const Order = () => {
                            </td>
                    
                            <td className="px-6 py-4">
-                             <span className={`px-3 whitespace-nowrap ${ele.status === "NEW" ? "bg-blue-500 text-white" : ""} ${ele.status === "RETURN PENDING" ? "bg-gray-500 text-white" : ""} ${ele.status === "SUCCESS" ? "bg-green-500 text-white" : ""} ${ele.status === "RETURN CANCELLED" ? "bg-red-500 text-white" : ""}  py-1 text-xs rounded-full  font-medium`}>
+                             <span className={`px-3 whitespace-nowrap ${ele.status === "NEW" ? "bg-blue-100 text-blue-700" : ""} ${ele.status === "RETURN PENDING" ? "bg-yellow-100 text-yellow-700" : ""} ${ele.status === "SUCCESS" ? "bg-green-100 text-green-700" : ""} ${ele.status === "RETURN CANCELLED" ? "bg-red-100 text-red-700" : ""}  ${ele.status === "CANCELED" ? "bg-red-200 text-red-800" : ""}  py-1 text-xs rounded-full  font-medium`}>
                                {ele?.status}
                              </span>
                            </td>
@@ -151,6 +193,12 @@ const Order = () => {
                                  <button onClick={()=> {setOff(true); ShipManage(ele)}} className="px-2 py-1 bg-purple-500 text-white font-[500] rounded whitespace-nowrap text-sm mr-3 hover:bg-purple-600 transition-colors duration-200">
                                   Ship Now
                                  </button>
+                                  {(ele.status === "NEW" || ele.status === "RETURN PENDING") && (
+                                    <button onClick={()=> {setNewOpen(true); setOrderId(ele?.channel_order_id)}} className="bg-red-500 px-2 py-1 hover:bg-red-600 rounded text-white hover:underline">
+                                      Cancel Order
+                                    </button>
+                                   )}
+
                                  {/* <div className="relative inline-block" ref={dropdownRef}>
                                   <button
                                     onClick={() => setOpen(!open)}
@@ -181,8 +229,11 @@ const Order = () => {
            
            
                </tbody>
+               )} 
              </table>
-              <Transition show={off} as={Fragment}>
+              
+           </div>
+           <Transition show={off} as={Fragment}>
                 <Dialog as="div" className="relative z-[100]" onClose={setOff}>
                   
                   <Transition.Child
@@ -331,8 +382,53 @@ const Order = () => {
                    </div>
                  </div>
                </Dialog>
-              </Transition>
-           </div>
+           </Transition>
+
+           <Dialog open={newOpen} onClose={setNewOpen} className="relative z-[100]">
+           <DialogBackdrop
+          transition
+          className="fixed inset-0 bg-gray-900/50 transition-opacity data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in"
+        />
+
+        <div className="fixed inset-0 z-[100] w-screen overflow-y-auto">
+          <div className="flex min-h-full items-end justify-center p-4 text-center sm:items-center sm:p-0">
+            <DialogPanel
+              transition
+              className="relative transform overflow-hidden rounded-lg bg-gray-800 text-left shadow-xl outline -outline-offset-1 outline-white/10 transition-all data-closed:translate-y-4 data-closed:opacity-0 data-enter:duration-300 data-enter:ease-out data-leave:duration-200 data-leave:ease-in sm:my-8 sm:w-full sm:max-w-lg data-closed:sm:translate-y-0 data-closed:sm:scale-95"
+            >
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex justify-center items-center flex-col">
+                    <MdWarning aria-hidden="true" className="size-10 text-red-400" />
+                  <div className="mt-3 text-center sm:mt-0 sm:ml-4 sm:text-left">
+                    <div className="mt-4">
+                      <p className="text-xl font-medium text-gray-400 ">
+                      Are you sure you want to cancel this order?
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white px-4 pt-4 sm:flex sm:flex-row-reverse items-center justify-center sm:gap-3 sm:px-6 pb-8">
+                 <button
+                   type="button"
+                   onClick={() => handleCancelOrder()}
+                   className="w-full sm:w-32 h-10 inline-flex items-center justify-center rounded-md bg-red-500 text-sm font-semibold text-white transition-all duration-200 hover:bg-red-600 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-red-400"
+                 >
+                   Yes, Cancel
+                 </button>
+               
+                 <button
+                   type="button"
+                   onClick={() => setNewOpen(false)}
+                   className="w-full sm:w-32 h-10 inline-flex items-center justify-center rounded-md border border-gray-300 bg-white text-sm font-semibold text-gray-700 transition-all duration-200 hover:bg-gray-100 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-gray-300"
+                 >
+                   No
+                 </button>
+               </div>
+            </DialogPanel>
+          </div>
+        </div>
+      </Dialog>
        </div>
   )
 }

@@ -34,7 +34,7 @@ const Sidebar = ({ open, setOpen }) => {
       {/* Sidebar */}
       <aside
         className={`
-          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r
+          fixed top-0 left-0 z-50 h-full w-1/6 bg-white border-r
           transform transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "-translate-x-full"}
           lg:translate-x-0

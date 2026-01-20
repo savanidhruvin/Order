@@ -66,7 +66,7 @@ exports.createOrder = async (req, res) => {
             dimension,
         });
         
-        // await createShipping(req, res, order);
+        await createShipping(req, res, order);
 
         return getSuccessResponse(res, order, "Order created successfully");
     } catch (error) {
@@ -373,6 +373,7 @@ exports.getChargeandday = async (req, res) => {
 };
 
 exports.cancleOrder = async (req, res) => {
+    debugger
     try {
         const orderId = req.params.id;
 
@@ -383,6 +384,9 @@ exports.cancleOrder = async (req, res) => {
                 message: "Order not found"
             });
         }
+
+        console.log("okoko" , order);
+        
 
         // Call Shiprocket API to cancel shipment
 

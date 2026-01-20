@@ -4,8 +4,13 @@
         display: block;
         overflow-x: auto;
     } */
-    /* .ds_manage{
+     .ds_wraper{
+        overflow-x: auto; 
+        display: block; 
+        white-space: nowrap; 
+     }
+    .ds_manage{
         min-width: 1000px;
-    } */
+    }
 }
 
