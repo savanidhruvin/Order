@@ -131,6 +131,33 @@ export const CreateManShip = createAsyncThunk(
   }
 );
 
+export const CancelOrder = createAsyncThunk(
+  "admin/CancelOrder",
+  async (orderId, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token");
+
+      const response = await axios.put(
+        `${BaseUrl}/cancleOrder/${orderId}`,
+        {}, 
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
+
+
+
 const initialState = {
   orders: [],
   loading: false,
@@ -206,6 +233,21 @@ const orderSlice = createSlice({
       state.loading = false
       state.success = false
       state.message = action.payload?.message || "Failed to Create ManShip";
+    })
+
+    .addCase(CancelOrder.pending, (state, action) => {
+      state.loading = true;
+      state.message = "Fetching Cancel Order..."
+    })
+    .addCase(CancelOrder.fulfilled, (state, action) => {
+      state.loading = false;
+      state.success = true
+      state.message = "Fetching Cancel Order Successfully..."
+    })
+    .addCase(CancelOrder.rejected, (state, action) => {
+      state.loading = false
+      state.success = false
+      state.message = action.payload?.message || "Failed to Cancel Order";
     })
   }
 });
