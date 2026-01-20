@@ -374,7 +374,7 @@ const AddOrder = () => {
           </div>
 
           <div>
-            <label className="text-xs text-gray-600">Full Name</label>  
+            <label className="text-xs text-gray-600">First Name</label>  
             <input name="firstName" value={AddFormik.values.firstName} onChange={AddFormik.handleChange} onBlur={AddFormik.handleBlur} className="mt-1 w-full border rounded-md px-2 sm:px-3 py-2 text-xs sm:text-sm" placeholder="Enter Full Name"/>
             {AddFormik.touched.firstName && AddFormik.errors.firstName && ( <p className="text-red-500 text-xs mt-1">   {AddFormik.errors.firstName} </p>)}
           </div>
