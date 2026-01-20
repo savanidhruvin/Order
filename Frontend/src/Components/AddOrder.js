@@ -18,6 +18,7 @@ import { HiOutlineLightBulb } from "react-icons/hi";
 
 import { useDispatch, useSelector } from 'react-redux';
 import { GetPickupAddresses } from '../store/slices/pickupaddressSlice';
+import { AddPickupAddress } from '../store/slices/addorderSlice';
 import { useFormik } from 'formik';
 import { OrderSchema } from '../Schema';
 import { CreateOrder, GetAllOrder } from '../store/slices/orderSlice';
@@ -33,6 +34,21 @@ const AddOrder = () => {
 
   const [openModal, setOpenModal] = useState(false);
   const [openEditModal, setOpenEditModal] = useState(false);
+
+  const [selectedTag, setSelectedTag] = useState("Home");
+  const [addressNickname, setAddressNickname] = useState("");
+  const [pickupForm, setPickupForm] = useState({
+    pickup_location: 'Home',
+    name: '',
+    phone: '',
+    email: '',
+    address: '',
+    landmark: '',
+    city: '',
+    state: '',
+    country: 'India',
+    pincode: ''
+  });
 
   const [openMenuId, setOpenMenuId] = useState(null);
   const [menuPosition, setMenuPosition] = useState(null);
@@ -86,6 +102,27 @@ const AddOrder = () => {
     const shiprocketUrl = `https://app.shiprocket.in/sellers/settings/company-setup/pickup-addresses?${params}`;
 
     window.open(shiprocketUrl, "_blank", "noopener,noreferrer");
+  };
+
+  const handlePickupChange = (e) => {
+    const { name, value } = e.target;
+    setPickupForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleSavePickup = async () => {
+    try {
+      // map selectedTag to pickup_location, if Other use addressNickname
+      const payload = { ...pickupForm, pickup_location: selectedTag === 'Other' ? addressNickname || 'Other' : selectedTag };
+    
+      await dispatch(AddPickupAddress(payload)).unwrap();
+
+      alert('Pickup address added successfully');
+      setOpenModal(false);
+      dispatch(GetPickupAddresses());
+
+    } catch (err) {
+      alert(err.message); // ✅ now always works
+    }
   };
 
   const [products, setProducts] = useState([
@@ -697,7 +734,7 @@ const AddOrder = () => {
   </div>
 
   {/* Modal for Add New Pickup Address */}
-  <Transition show={openModal} as={Fragment}>
+  {/* <Transition show={openModal} as={Fragment}>
     <Dialog as="div" className="relative z-10" onClose={setOpenModal}>
       <Transition.Child as={Fragment} enter="ease-in-out duration-500" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in-out duration-500" leaveFrom="opacity-100" leaveTo="opacity-0">
         <div className="fixed inset-0 bg-gray-900/50" />
@@ -708,14 +745,14 @@ const AddOrder = () => {
             <Transition.Child as={Fragment} enter="transform transition ease-in-out duration-500" enterFrom="translate-x-full" enterTo="translate-x-0" leave="transform transition ease-in-out duration-500" leaveFrom="translate-x-0" leaveTo="translate-x-full">
               <DialogPanel className="pointer-events-auto relative w-full max-w-8xl bg-white shadow-xl flex flex-col">
                 <div className="relative flex h-full flex-col overflow-y-auto">
-                  {/* Header */}
+                  
                   <div className="flex justify-between items-center px-6 py-4 border-b">
                     <DialogTitle className="text-lg font-semibold">Add New Pickup Address</DialogTitle>
                     <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
                       <IoCloseSharp className="text-2xl" />
                     </button>
                   </div>
-                  {/* Steps */}
+                 
                   <div className="px-6 py-6">
                     <div className="bg-gray-50 rounded-xl p-6 grid grid-cols-1 md:grid-cols-3 gap-6 text-center">
                       <div>
@@ -734,10 +771,10 @@ const AddOrder = () => {
                       </div>
                     </div>
                   </div>
-                  {/* Address Details */}
+                  
                   <div className="px-6 space-y-6">
                     <h3 className="font-semibold text-sm">Address Details</h3>
-                    {/* Address Tag */}
+                    
                     <div>
                       <p className="text-sm font-medium mb-2">Tag this address as</p>
                       <div className="flex flex-wrap gap-2">
@@ -747,7 +784,7 @@ const AddOrder = () => {
                         <button className="px-4 py-1.5 text-sm border rounded-full">Other</button>
                       </div>
                     </div>
-                    {/* Location Choice */}
+                  
                     <div>
                       <p className="text-sm font-medium mb-2">Are you at this address right now?</p>
                       <div className="flex flex-col sm:flex-row gap-4 text-sm">
@@ -762,7 +799,7 @@ const AddOrder = () => {
                       </div>
                     </div>
 
-                    {/* Search Address */}
+                    
                     <div className="bg-gray-50 rounded-lg p-4">
                       <label className="text-sm font-medium">Search for your pickup address location/building/area/landmark</label>
                       <p className="text-xs text-gray-500 mb-2">Please add minimum 5 characters</p>
@@ -772,7 +809,7 @@ const AddOrder = () => {
                       </div>
                     </div>
 
-                    {/* Accordions */}
+                    
                     <div className="border-t pt-4 flex justify-between items-center text-sm text-gray-600 cursor-pointer">
                       <span>Contact Details</span>
                       <span><IoIosArrowDown /></span>
@@ -785,7 +822,7 @@ const AddOrder = () => {
                     <button className="text-indigo-600 text-sm font-medium flex items-center gap-1">+ Add RTO Address and Supplier <IoIosArrowDown /></button>
                   </div>
 
-                  {/* Footer */}
+                 
                   <div className="px-6 py-4 border-t flex justify-end gap-4 mt-6">
                     <button onClick={() => setOpenModal(false)} className="px-5 py-2 border border-indigo-500 text-indigo-600 rounded-md text-sm">Cancel</button>
                     <button className="px-6 py-2 bg-indigo-600 text-white rounded-md text-sm">Verify and Save Address</button>
@@ -797,11 +834,11 @@ const AddOrder = () => {
         </div>
       </div>
     </Dialog>
-  </Transition>
+  </Transition> */}
 
   {/* Modal for Edit Pickup Location */}
-  <Transition show={openEditModal} as={Fragment}>
-    <Dialog as="div" className="relative z-10" onClose={setOpenEditModal}>
+  <Transition show={openModal} as={Fragment}>
+    <Dialog as="div" className="relative z-[100]" onClose={setOpenModal}>
       <Transition.Child as={Fragment} enter="ease-in-out duration-500" enterFrom="opacity-0" enterTo="opacity-100" leave="ease-in-out duration-500" leaveFrom="opacity-100" leaveTo="opacity-0">
         <div className="fixed inset-0 bg-gray-900/50" />
       </Transition.Child>
@@ -813,136 +850,163 @@ const AddOrder = () => {
                 <div className="overflow-auto">
                   {/* Header */}
                   <div className="flex justify-between items-center px-6 py-4 border-b">
-                    <DialogTitle className="text-lg font-semibold">Edit Pickup Location</DialogTitle>
-                    <button onClick={() => setOpenEditModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
+                    <DialogTitle className="text-lg font-semibold">Add Pickup Location</DialogTitle>
+                    <button onClick={() => setOpenModal(false)} className="text-gray-400 hover:text-gray-600 text-xl">
                       &times;
                     </button>
                   </div>
                   <div className="p-6 space-y-8 max-w-7xl mx-auto">
-                    {/* Address Details */}
-                    <section className="space-y-4">
+                    {/* Address Details */}      
+                    
+                    <section className="space-y-6">
                       <h3 className="text-sm font-semibold">Address Details</h3>
-                      {/* Tags */}
+
+                      {selectedTag === "Other" && (
+                        <div className="mt-4">
+                          <label className="text-xs font-medium text-gray-600">
+                            Address Nickname
+                          </label>
+                          <input
+                            type="text"
+                            value={addressNickname}
+                            onChange={(e) => setAddressNickname(e.target.value)}
+                            placeholder="Address Nickname"
+                            className="mt-1 w-full border rounded-md px-3 py-2 text-sm focus:ring-1 focus:ring-purple-500 focus:border-purple-500"
+                          />
+                        </div>
+                      )}
+
                       <div className="flex flex-wrap gap-2">
-                        <button className="px-4 py-1.5 text-sm rounded-full border border-indigo-500 text-indigo-600 bg-indigo-50">Home</button>
-                        <button className="px-4 py-1.5 text-sm rounded-full border">Work</button>
-                        <button className="px-4 py-1.5 text-sm rounded-full border">Warehouse</button>
-                        <button className="px-4 py-1.5 text-sm rounded-full border">Other</button>
+                        {["Home", "Work", "Warehouse", "Other"].map((tag) => (
+                          <button
+                            key={tag}
+                            onClick={() => setSelectedTag(tag)}
+                            className={`px-4 py-1.5 text-sm rounded-full border transition
+                              ${
+                                selectedTag === tag
+                                  ? "border-purple-500 bg-purple-50 text-purple-600"
+                                  : "border-gray-300 text-gray-600 hover:border-purple-400"
+                              }`}
+                          >
+                            {tag}
+                          </button>
+                        ))}
                       </div>
-                      {/* Address + Map */}
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 bg-gray-50 p-4 rounded-lg">
-                        {/* Address Form */}
-                        <div className="space-y-4">
+
+                      {/* Form Container */}
+                      <div className="bg-gray-50 p-5 rounded-lg space-y-5">
+
+                        {/* Complete Address */}
+                        <div>
+                          <label className="text-xs font-medium">Complete Address</label>
+                          <input
+                            name="address"
+                            value={pickupForm.address}
+                            onChange={handlePickupChange}
+                            className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            placeholder="Enter full address"
+                          />
+                        </div>
+
+                        {/* Landmark */}
+                        <div>
+                          <label className="text-xs font-medium">Landmark</label>
+                          <input
+                            name="landmark"
+                            value={pickupForm.landmark}
+                            onChange={handlePickupChange}
+                            className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            placeholder="Nearby landmark"
+                          />
+                        </div>
+
+                        {/* Pincode, City, State */}
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                           <div>
-                            <label className="text-xs font-medium">Complete address</label>
-                            <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                            <label className="text-xs font-medium">Pincode</label>
+                            <input
+                              name="pincode"
+                              value={pickupForm.pincode}
+                              onChange={handlePickupChange}
+                              className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            />
                           </div>
+
                           <div>
-                            <label className="text-xs font-medium">Landmark</label>
-                            <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" placeholder="Nearby landmark" />
+                            <label className="text-xs font-medium">City</label>
+                            <input
+                              name="city"
+                              value={pickupForm.city}
+                              onChange={handlePickupChange}
+                              className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            />
                           </div>
-                          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                            <div>
-                              <label className="text-xs font-medium">Pincode</label>
-                              <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium">City</label>
-                              <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                            </div>
-                            <div>
-                              <label className="text-xs font-medium">State</label>
-                              <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                            </div>
-                          </div>
+
                           <div>
-                            <label className="text-xs font-medium">Country</label>
-                            <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
+                            <label className="text-xs font-medium">State</label>
+                            <input
+                              name="state"
+                              value={pickupForm.state}
+                              onChange={handlePickupChange}
+                              className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            />
                           </div>
                         </div>
-                        {/* Map Placeholder */}
-                        <div className="relative border rounded-lg overflow-hidden bg-gray-200 flex items-center justify-center">
-                          <span className="text-gray-500 text-sm">Google Map Preview</span>
-                          <button className="absolute bottom-3 right-3 bg-white border px-3 py-1.5 text-xs rounded-md text-indigo-600">✎ Edit Location</button>
+
+                        {/* Country */}
+                        <div>
+                          <label className="text-xs font-medium">Country</label>
+                          <input
+                            name="country"
+                            value={pickupForm.country}
+                            onChange={handlePickupChange}
+                            className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                          />
                         </div>
+
+                        {/* Contact Details */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                          <div>
+                            <label className="text-xs font-medium">Name</label>
+                            <input
+                              name="name"
+                              value={pickupForm.name}
+                              onChange={handlePickupChange}
+                              className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            />
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-medium">Contact Number</label>
+                            <input
+                              name="phone"
+                              value={pickupForm.phone}
+                              onChange={handlePickupChange}
+                              className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            />
+                            <span className="text-xs text-green-600 font-medium">
+                              ✔ Verified
+                            </span>
+                          </div>
+
+                          <div>
+                            <label className="text-xs font-medium">Email Address</label>
+                            <input
+                              name="email"
+                              value={pickupForm.email}
+                              onChange={handlePickupChange}
+                              className="w-full mt-1 border rounded-md px-3 py-2 text-sm"
+                            />
+                          </div>
+                        </div>
+
                       </div>
                     </section>
-                    {/* Contact Details */}
-                    <section className="border-t pt-6 space-y-4">
-                      <h3 className="text-sm font-semibold">Contact Details</h3>
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                        <div>
-                          <label className="text-xs font-medium">Name</label>
-                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">Contact Number</label>
-                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                          <span className="text-xs text-green-600 font-medium">✔ Verified</span>
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">Email Address</label>
-                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">Role</label>
-                          <select className="w-full mt-1 border rounded-md px-3 py-2 text-sm">
-                            <option>Select Role</option>
-                          </select>
-                        </div>
-                      </div>
-                      {/* Alternate Contact */}
-                      <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                        <div>
-                          <label className="text-xs font-medium">Alternate Name</label>
-                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">Alternate Phone</label>
-                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">Email</label>
-                          <input className="w-full mt-1 border rounded-md px-3 py-2 text-sm" />
-                        </div>
-                        <div>
-                          <label className="text-xs font-medium">Role</label>
-                          <select className="w-full mt-1 border rounded-md px-3 py-2 text-sm">
-                            <option>Select Role</option>
-                          </select>
-                        </div>
-                      </div>
-                    </section>
-                    {/* Operational Timings */}
-                    <section className="border-t pt-6 space-y-4">
-                      <h3 className="text-sm font-semibold">Operational Timings</h3>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                        <select className="border rounded-md px-3 py-2 text-sm">
-                          <option>Select Days</option>
-                        </select>
-                        <select className="border rounded-md px-3 py-2 text-sm">
-                          <option>Opening Time</option>
-                        </select>
-                        <select className="border rounded-md px-3 py-2 text-sm">
-                          <option>Closing Time</option>
-                        </select>
-                      </div>
-                    </section>
-                    {/* RTO & Supplier */}
-                    <section className="border-t pt-6 space-y-4 bg-gray-50 p-4 rounded-lg">
-                      <h3 className="text-sm font-semibold text-indigo-600">+ Add RTO Address and Supplier</h3>
-                      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-                        <input className="border rounded-md px-3 py-2 text-sm" placeholder="Supplier/Vendor Name" />
-                        <input className="border rounded-md px-3 py-2 text-sm" placeholder="Supplier GSTIN" />
-                        <select className="border rounded-md px-3 py-2 text-sm">
-                          <option>Select Address</option>
-                        </select>
-                      </div>
-                    </section>
+
                     {/* Footer */}
                     <div className="flex justify-end gap-4 pt-6">
-                      <button onClick={() => setOpenEditModal(false)} className="px-6 py-2 border border-indigo-500 text-indigo-600 rounded-md text-sm">Cancel</button>
-                      <button className="px-6 py-2 bg-indigo-600 text-white rounded-md text-sm">Verify and Save Address</button>
+                      <button onClick={() => setOpenModal(false)} className="px-6 py-2 border border-purple-500 text-black rounded-md text-sm">Cancel</button>
+                      <button onClick={handleSavePickup} className="px-2 py-1 bg-purple-500 text-white font-[500] whitespace-nowrap rounded text-sm mr-3">Verify and Save Address</button>
                     </div>
                   </div>
                 </div>
