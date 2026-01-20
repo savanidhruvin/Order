@@ -226,9 +226,9 @@ const AddOrder = () => {
 
   return (
     <>
-  <div className="container ms:px-10 px-5 mx-auto mt-5">
-    <div className="flex items-center justify-between gap-2 text-gray-900">
-      <h1 className="text-2xl font-bold">Add Order</h1>
+  <div className="container ms:px-6 mx-auto ">
+    <div className="flex items-center justify-between gap-2 text-gray-900 my-2">
+      <h1 className="text-3xl font-bold">Add Order</h1>
       <button onClick={()=> navigate("/")} className='px-2 py-1 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>Back</button>
     </div>
     {/* <div className="mt-6 border-b border-gray-200">

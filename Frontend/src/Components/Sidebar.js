@@ -1,33 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FiHome,
   FiShoppingBag,
   FiUsers,
-  FiSettings,
-  FiMenu,
   FiX,
 } from "react-icons/fi";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
-const Sidebar = ({open , setOpen}) => {
-  
+const Sidebar = ({ open, setOpen }) => {
+  const location = useLocation();
+  const [active, setActive] = useState("");
+
+  useEffect(() => {
+    setActive(location.pathname);
+  }, [location.pathname]);
 
   const menu = [
     { name: "Order", icon: <FiHome />, path: "/" },
     { name: "Add Order", icon: <FiShoppingBag />, path: "/addorder" },
     { name: "Return Order", icon: <FiUsers />, path: "/returnorder" },
-    { name: "Settings", icon: <FiSettings />, path: "/settings" },
   ];
 
   return (
     <>
-      {/* <div className="hidden flex items-center justify-between p-4 border-b bg-white">
-        <h1 className="font-semibold text-lg">My App</h1>
-        <button onClick={() => setOpen(true)}>
-          <FiMenu className="text-xl" />
-        </button>
-      </div> */}
-
+      {/* Mobile Overlay */}
       {open && (
         <div
           className="fixed inset-0 bg-black/40 z-40 lg:hidden"
@@ -35,13 +31,18 @@ const Sidebar = ({open , setOpen}) => {
         />
       )}
 
+      {/* Sidebar */}
       <aside
-        className={`fixed top-0 left-0 h-full w-64 bg-white border-r z-50 transform transition-transform duration-300
-        ${open ? "translate-x-0" : "-translate-x-full"}
-        lg:translate-x-0`}
+        className={`
+          fixed top-0 left-0 z-50 h-full w-64 bg-white border-r
+          transform transition-transform duration-300 ease-in-out
+          ${open ? "translate-x-0" : "-translate-x-full"}
+          lg:translate-x-0
+        `}
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 className="font-bold text-lg">My App</h2>
+        {/* Logo / Header */}
+        <div className="flex items-center justify-between px-4 h-16 border-b">
+          <h1 className="font-bold text-lg">My App</h1>
           <button
             className="lg:hidden"
             onClick={() => setOpen(false)}
@@ -50,12 +51,22 @@ const Sidebar = ({open , setOpen}) => {
           </button>
         </div>
 
-        <nav className="p-4 space-y-1">
-          {menu.map((item, index) => (
+        {/* Menu */}
+        <nav className="p-3 space-y-1">
+          {menu.map((item) => (
             <Link
-              key={index}
+              key={item.path}
               to={item.path}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-600 transition"
+              onClick={() => setOpen(false)}
+              className={`
+                flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
+                transition
+                ${
+                  active === item.path
+                    ? "bg-purple-100 text-purple-700"
+                    : "text-gray-600 hover:bg-purple-50 hover:text-purple-600"
+                }
+              `}
             >
               <span className="text-lg">{item.icon}</span>
               {item.name}
@@ -63,8 +74,6 @@ const Sidebar = ({open , setOpen}) => {
           ))}
         </nav>
       </aside>
-
-      <div className="hidden lg:block w-64"></div>
     </>
   );
 };

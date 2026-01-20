@@ -76,21 +76,21 @@ const Order = () => {
         error?.message ||
         "Something went wrong"
       );
+      setOff(false)
+
     }
   };
   
   
 
   return (
-    <div>
-       <div className='container ms:px-10 px-5 mx-auto'>
+       <div className='container ms:px-6 mx-auto'>
            <div className='flex justify-between my-2'>
              <h1 className='text-3xl font-bold'>Orders</h1>
-             <button onClick={()=> navigate("addorder")} className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button>
+             {/* <button onClick={()=> navigate("addorder")} className='px-3 py-2 bg-purple-500 text-white font-[500] rounded hover:bg-purple-600 transition-colors duration-200'>+ Add Order</button> */}
            </div>
-           <div className='mt-5'>
-           <div className="relative overflow-x-auto rounded-xl border border-gray-200 shadow-sm bg-white">
-             <table className="w-full text-sm text-left text-gray-600">
+           <div className="rounded-xl mt-5 border border-gray-200 shadow-sm bg-white overflow-x-auto">
+             <table className="w-full ds_manage text-sm text-left text-gray-600 ">
            
                <thead className="bg-gray-50 text-xs uppercase text-gray-500 sticky top-0 z-10 shadow-[0_2px_6px_rgba(0,0,0,0.08)]">
                  <tr>
@@ -141,7 +141,7 @@ const Order = () => {
                            </td>
                    
                            <td className="px-6 py-4">
-                             <span className={`px-3 ${ele.status === "NEW" ? "bg-blue-500 text-white" : ""} ${ele.status === "RETURN PENDING" ? "bg-gray-500 text-white" : ""} ${ele.status === "SUCCESS" ? "bg-green-500 text-white" : ""} ${ele.status === "RETURN CANCELLED" ? "bg-red-500 text-white" : ""}  py-1 text-xs rounded-full  font-medium`}>
+                             <span className={`px-3 whitespace-nowrap ${ele.status === "NEW" ? "bg-blue-500 text-white" : ""} ${ele.status === "RETURN PENDING" ? "bg-gray-500 text-white" : ""} ${ele.status === "SUCCESS" ? "bg-green-500 text-white" : ""} ${ele.status === "RETURN CANCELLED" ? "bg-red-500 text-white" : ""}  py-1 text-xs rounded-full  font-medium`}>
                                {ele?.status}
                              </span>
                            </td>
@@ -182,7 +182,6 @@ const Order = () => {
            
                </tbody>
              </table>
-           </div>
               <Transition show={off} as={Fragment}>
                 <Dialog as="div" className="relative z-[100]" onClose={setOff}>
                   
@@ -335,7 +334,6 @@ const Order = () => {
               </Transition>
            </div>
        </div>
-    </div>
   )
 }
 

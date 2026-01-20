@@ -1,36 +1,24 @@
-import React, { cache, useEffect, useLayoutEffect, useState } from 'react'
-import Sidebar from './Sidebar'
-import { Outlet } from 'react-router-dom'
-import axios from 'axios';
-const Base = "http://localhost:5000/api"
+import React, { useState } from "react";
+import Sidebar from "./Sidebar";
+import { FiMenu } from "react-icons/fi";
+import { Outlet } from "react-router-dom";
+import Header from "./Header";
 
-const Layout = () => {
-
-const [open, setOpen] = useState(false);
-
-useLayoutEffect(()=>{
-   const TokenApi = async() => {
-      try {
-          const response = await axios.get(`${Base}/getToken`)
-          console.log(response);
-          localStorage.setItem("Token" , response?.data?.data)     
-      }catch(error){
-           
-      }
-   }
-   TokenApi()
-},[])
+const Layout = ({ children }) => {
+  const [open, setOpen] = useState(false);
 
   return (
-    <div>
-       <div className='flex'>
-           <Sidebar open={open} setOpen={setOpen}/>
-           <div className='w-full'>
-              <Outlet/>
-           </div>
-       </div>
-    </div>
-  )
-}
+    <div className="flex min-h-screen bg-gray-50">
+      <Sidebar open={open} setOpen={setOpen} />
 
-export default Layout
+      {/* Main Content */}
+      <div className="flex-1 lg:ml-64">
+        {/* Header */}
+       <Header/>
+        <Outlet/>
+      </div>
+    </div>
+  );
+};
+
+export default Layout;

@@ -79,6 +79,61 @@ export const GetAllReturnOrders = createAsyncThunk(
   }
 )
 
+export const ReturnOrderCheck = createAsyncThunk(
+  "admin/ReturnOrderCheck",
+  async ({pincode , weight}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
+
+      const response = await axios.post(
+        `${BaseUrl}/checkreturnAvailbility`,
+        {
+          pickupPincode:pincode,
+          weight:weight
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
+
+export const ReturnOrderManPart = createAsyncThunk(
+  "admin/ReturnOrderManPart",
+  async ({orderId , id}, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("Token"); 
+
+      const response = await axios.post(
+        `${BaseUrl}/mannualReturnpartner/${orderId}`,
+        {
+          courierId:id
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data || { message: "Unexpected error occurred" }
+      );
+    }
+  }
+);
+
 const initialState = {
   returnOrders: [],
   loading: false,
@@ -107,6 +162,36 @@ const returnOrderSlice = createSlice({
         state.loading = false;
         state.success = false;
         state.message = action.payload?.message || "Failed to fetch return orders";
+      })
+
+      .addCase(ReturnOrderCheck.pending, (state) => {
+        state.loading = true;
+        state.message = "Fetching Return OrderCheck...";
+      })
+      .addCase(ReturnOrderCheck.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.message = "Fetched Return OrderCheck successfully.";
+      })
+      .addCase(ReturnOrderCheck.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.message = action.payload?.message || "Failed to fetch Return OrderCheck";
+      })
+
+      .addCase(ReturnOrderManPart.pending, (state) => {
+        state.loading = true;
+        state.message = "Fetching Return OrderManPart...";
+      })
+      .addCase(ReturnOrderManPart.fulfilled, (state, action) => {
+        state.loading = false;
+        state.success = true;
+        state.message = "Fetched Return OrderManPart successfully.";
+      })
+      .addCase(ReturnOrderManPart.rejected, (state, action) => {
+        state.loading = false;
+        state.success = false;
+        state.message = action.payload?.message || "Failed to fetch Return OrderManPart";
       })
   }
 });
